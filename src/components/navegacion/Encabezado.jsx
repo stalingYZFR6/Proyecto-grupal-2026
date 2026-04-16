@@ -98,6 +98,11 @@ const NavbarModaExpress = () => {
                     <strong>Empleados</strong>
                 </Nav.Link>
 
+                <Nav.Link onClick={() => manejarNavegacion("/incidencias")} className="text-white">
+                    {mostrarMenu && <i className="bi bi-exclamation-triangle-fill me-2"></i>}
+                    <strong>Incidencias</strong>
+                </Nav.Link>
+
                 <Nav.Link onClick={() => manejarNavegacion("/productos")} className="text-white">
                     {mostrarMenu && <i className="bi bi-bag-heart-fill me-2"></i>}
                     <strong>Productos</strong>

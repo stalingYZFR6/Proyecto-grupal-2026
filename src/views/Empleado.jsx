@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Button, Spinner } from "react-bootstrap";
+import { Container, Row, Col, Button, Spinner, Card, Badge, Form } from "react-bootstrap";
 import { supabase } from "../database/supabaseconfig";
 
 // Importa tus componentes adaptados
@@ -24,6 +24,7 @@ const Empleados = () => {
 
     const [empleados, setEmpleados] = useState([]);
     const [cargando, setCargando] = useState(true);
+    const [busqueda, setBusqueda] = useState("");   // ← Añadido para búsqueda
 
     // Estados para edición y eliminación (por si los necesitas después)
     const [mostrarModalEdicion, setMostrarModalEdicion] = useState(false);
@@ -151,58 +152,82 @@ const Empleados = () => {
         setMostrarModalEliminacion(true);
     };
 
+    // Filtrado de empleados (mantengo la funcionalidad original)
+    const empleadosFiltrados = empleados.filter((emp) =>
+        `${emp.nombre} ${emp.apellido}`.toLowerCase().includes(busqueda.toLowerCase()) ||
+        emp.cedula.toLowerCase().includes(busqueda.toLowerCase())
+    );
+
     // Cargar empleados al montar el componente
     useEffect(() => {
         cargarEmpleados();
     }, []);
 
     return (
-        <Container className="mt-3">
-
-            {/* Título y botón Nuevo Empleado */}
-            <Row className="align-items-center mb-3">
-                <Col xs={9} sm={7} md={8} className="d-flex align-items-center">
-                    <h3 className="mb-0">
-                        <i className="bi bi-people-fill me-2"></i> 
-                        Gestión de Empleados
-                    </h3>
+        <Container fluid className="py-4 px-3 px-md-4">
+            {/* Header Moderno */}
+            <Row className="align-items-center mb-4">
+                <Col>
+                    <div className="d-flex align-items-center gap-3">
+                        <i className="bi bi-people-fill fs-1 text-primary"></i>
+                        <div>
+                            <h2 className="mb-1 fw-bold">Gestión de Empleados</h2>
+                            <p className="text-muted mb-0">Administra el personal registrado en el sistema</p>
+                        </div>
+                    </div>
                 </Col>
-                <Col xs={3} sm={5} md={4} className="text-end">
+                <Col xs="auto">
                     <Button
                         onClick={() => setMostrarModal(true)}
-                        size="md"
-                        variant="success"
+                        size="lg"
+                        variant="primary"
+                        className="d-flex align-items-center gap-2 shadow-sm"
                     >
                         <i className="bi bi-plus-lg"></i>
-                        <span className="d-none d-sm-inline ms-2">Nuevo Empleado</span>
+                        Nuevo Empleado
                     </Button>
                 </Col>
             </Row>
 
-            <hr />
+            {/* Tarjeta Principal */}
+            <Card className="shadow border-0 rounded-4">
+                <Card.Body className="p-4 p-lg-5">
+                    {/* Barra superior: Búsqueda + Contador */}
+                    <Row className="mb-4 align-items-center">
+                        <Col md={7}>
+                            <Form.Control
+                                type="text"
+                                placeholder="Buscar por nombre o cédula..."
+                                value={busqueda}
+                                onChange={(e) => setBusqueda(e.target.value)}
+                                className="py-2"
+                            />
+                        </Col>
+                        <Col md={5} className="text-md-end mt-3 mt-md-0">
+                            <Badge bg="primary" pill className="fs-6 px-3 py-2">
+                                {empleadosFiltrados.length} empleados
+                            </Badge>
+                        </Col>
+                    </Row>
 
-            {/* Spinner de carga */}
-            {cargando && (
-                <Row className="text-center my-5">
-                    <Col>
-                        <Spinner animation="border" variant="primary" size="lg" />
-                        <p className="mt-3 text-muted">Cargando empleados...</p>
-                    </Col>
-                </Row>
-            )}
+                    {/* Spinner de carga */}
+                    {cargando && (
+                        <div className="text-center py-5">
+                            <Spinner animation="border" variant="primary" size="lg" />
+                            <p className="mt-3 text-muted">Cargando empleados...</p>
+                        </div>
+                    )}
 
-            {/* Tabla de empleados */}
-            {!cargando && (
-                <Row>
-                    <Col lg={12}>
+                    {/* Tabla de empleados */}
+                    {!cargando && (
                         <TablaEmpleados
-                            empleados={empleados}
+                            empleados={empleadosFiltrados}
                             abrirModalEdicion={abrirModalEdicion}
                             abrirModalEliminacion={abrirModalEliminacion}
                         />
-                    </Col>
-                </Row>
-            )}
+                    )}
+                </Card.Body>
+            </Card>
 
             {/* Modal de Registro de Empleado */}
             <ModalRegistroEmpleado
@@ -220,10 +245,8 @@ const Empleados = () => {
                 tipo={toast.tipo}
                 onCerrar={() => setToast({ ...toast, mostrar: false })}
             />
-
         </Container>
     );
 };
 
 export default Empleados;
-

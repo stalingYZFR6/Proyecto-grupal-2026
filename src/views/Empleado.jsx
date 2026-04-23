@@ -3,7 +3,10 @@ import { Container, Row, Col, Button, Spinner, Card, Badge, Form } from "react-b
 import { supabase } from "../database/supabaseconfig";
 
 // Importa tus componentes adaptados
+import ModalEliminacionEmpleado from "../components/empleados/ModalEliminacionEmpleado";
+import ModalEdicionEmpleado from "../components/empleados/ModalEdicionEmpleado";
 import ModalRegistroEmpleado from "../components/empleados/ModalRegistroEmpleado";
+import TarjetaEmpleado from "../components/empleados/TarjetaEmpleado";
 import TablaEmpleados from "../components/empleados/TablaEmpleados";
 import NotificacionOperacion from "../components/NotificacionOperacion";
 
@@ -41,11 +44,21 @@ const Empleados = () => {
         }));
     };
 
+    // 👇 AGREGA ESTE JUSTO DEBAJO
+    const manejoCambioInputEdicion = (e) => {
+        const { name, value } = e.target;
+        setEmpleadoEditar((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
+    };
+
+
     // Función para agregar empleado
     const agregarEmpleado = async () => {
         try {
-            if (!nuevoEmpleado.nombre.trim() || 
-                !nuevoEmpleado.apellido.trim() || 
+            if (!nuevoEmpleado.nombre.trim() ||
+                !nuevoEmpleado.apellido.trim() ||
                 !nuevoEmpleado.cedula.trim()) {
                 setToast({
                     mostrar: true,
@@ -103,6 +116,90 @@ const Empleados = () => {
             setToast({
                 mostrar: true,
                 mensaje: "Error inesperado al registrar el empleado.",
+                tipo: "error",
+            });
+        }
+    };
+
+     // Función para editar empleado
+    const actualizarEmpleado = async () => {
+    try {
+        if (!empleadoEditar) return;
+
+        const { error } = await supabase
+            .from("Empleado")
+            .update({
+                nombre: empleadoEditar.nombre,
+                apellido: empleadoEditar.apellido,
+                cedula: empleadoEditar.cedula,
+                correo: empleadoEditar.correo || null,
+                telefono: empleadoEditar.telefono || null,
+                direccion: empleadoEditar.direccion || null,
+            })
+            .eq("id_empleado", empleadoEditar.id_empleado);
+
+        if (error) {
+            setToast({
+                mostrar: true,
+                mensaje: "Error al actualizar el empleado.",
+                tipo: "error",
+            });
+            return;
+        }
+
+        setToast({
+            mostrar: true,
+            mensaje: "Empleado actualizado correctamente.",
+            tipo: "exito",
+        });
+
+        setMostrarModalEdicion(false);
+        setEmpleadoEditar(null);
+        await cargarEmpleados();
+
+    } catch (err) {
+        setToast({
+            mostrar: true,
+            mensaje: "Error inesperado al actualizar.",
+            tipo: "error",
+        });
+    }
+};
+
+
+    // Función para eliminar empleado
+    const eliminarEmpleado = async () => {
+        try {
+            if (!empleadoAEliminar) return;
+
+            const { error } = await supabase
+                .from("Empleado")
+                .delete()
+                .eq("id_empleado", empleadoAEliminar.id_empleado);
+
+            if (error) {
+                setToast({
+                    mostrar: true,
+                    mensaje: "Error al eliminar el empleado.",
+                    tipo: "error",
+                });
+                return;
+            }
+
+            setToast({
+                mostrar: true,
+                mensaje: "Empleado eliminado correctamente.",
+                tipo: "exito",
+            });
+
+            setMostrarModalEliminacion(false);
+            setEmpleadoAEliminar(null);
+            await cargarEmpleados();
+
+        } catch (err) {
+            setToast({
+                mostrar: true,
+                mensaje: "Error inesperado al eliminar.",
                 tipo: "error",
             });
         }
@@ -177,15 +274,21 @@ const Empleados = () => {
                     </div>
                 </Col>
                 <Col xs="auto">
-                    <Button
-                        onClick={() => setMostrarModal(true)}
-                        size="lg"
-                        variant="primary"
-                        className="d-flex align-items-center gap-2 shadow-sm"
-                    >
-                        <i className="bi bi-plus-lg"></i>
-                        Nuevo Empleado
-                    </Button>
+                    <Col xs="auto">
+                        <Button
+                            onClick={() => setMostrarModal(true)}
+                            variant="primary"
+                            className="d-flex align-items-center justify-content-center gap-2 shadow-sm"
+                            style={{ minWidth: "45px" }}
+                        >
+                            <i className="bi bi-plus-lg"></i>
+
+                            {/* Texto solo en pantallas medianas o grandes */}
+                            <span className="d-none d-md-inline">
+                                Nuevo Empleado
+                            </span>
+                        </Button>
+                    </Col>
                 </Col>
             </Row>
 
@@ -220,11 +323,31 @@ const Empleados = () => {
 
                     {/* Tabla de empleados */}
                     {!cargando && (
-                        <TablaEmpleados
-                            empleados={empleadosFiltrados}
-                            abrirModalEdicion={abrirModalEdicion}
-                            abrirModalEliminacion={abrirModalEliminacion}
-                        />
+                        <Row>
+
+    {/* 📱 TARJETAS (MÓVIL) */}
+    <Col xs={12} className="d-lg-none">
+        {!cargando && (
+            <TarjetaEmpleado
+                empleados={empleadosFiltrados}
+                abrirModalEdicion={abrirModalEdicion}
+                abrirModalEliminacion={abrirModalEliminacion}
+            />
+        )}
+    </Col>
+
+    {/* 💻 TABLA (ESCRITORIO) */}
+    <Col xs={12} className="d-none d-lg-block">
+        {!cargando && (
+            <TablaEmpleados
+                empleados={empleadosFiltrados}
+                abrirModalEdicion={abrirModalEdicion}
+                abrirModalEliminacion={abrirModalEliminacion}
+            />
+        )}
+    </Col>
+
+</Row>
                     )}
                 </Card.Body>
             </Card>
@@ -236,6 +359,21 @@ const Empleados = () => {
                 nuevoEmpleado={nuevoEmpleado}
                 manejoCambioInput={manejoCambioInput}
                 agregarEmpleado={agregarEmpleado}
+            />
+
+            <ModalEliminacionEmpleado
+                mostrarModalEliminacion={mostrarModalEliminacion}
+                setMostrarModalEliminacion={setMostrarModalEliminacion}
+                eliminarEmpleado={eliminarEmpleado}
+                empleado={empleadoAEliminar}
+            />
+
+            <ModalEdicionEmpleado
+                mostrarModalEdicion={mostrarModalEdicion}
+                setMostrarModalEdicion={setMostrarModalEdicion}
+                empleadoEditar={empleadoEditar}
+                manejoCambioInputEdicion={manejoCambioInputEdicion}
+                actualizarEmpleado={actualizarEmpleado}
             />
 
             {/* Notificación */}

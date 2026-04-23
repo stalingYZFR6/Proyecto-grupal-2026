@@ -4,6 +4,8 @@ import { supabase } from "../database/supabaseconfig";
 
 // Componentes adaptados
 import ModalRegistroIncidencia from "../components/Incidencias/ModalRegistroIncidencia";
+import ModalEliminacionIncidencia from "../components/Incidencias/ModalEliminacionIncidencia";
+import ModalEdicionIncidencia from "../components/Incidencias/ModalEdicionIncidencia";
 import TablaIncidencias from "../components/Incidencias/TablaIncidencia";
 import NotificacionOperacion from "../components/NotificacionOperacion";
 
@@ -37,6 +39,15 @@ const Incidencias = () => {
             [name]: value,
         }));
     };
+
+      // Manejo de inputsEdicion
+    const manejoCambioInputEdicion = (e) => {
+    const { name, value } = e.target;
+    setIncidenciaEditar((prev) => ({
+        ...prev,
+        [name]: value,
+    }));
+};
 
     // Agregar incidencia
     const agregarIncidencia = async () => {
@@ -92,6 +103,86 @@ const Incidencias = () => {
             });
         }
     };
+
+    // editar incidencias
+    const actualizarIncidencia = async () => {
+        try {
+            if (!incidenciaEditar) return;
+
+            const { error } = await supabase
+                .from("Incidencias")
+                .update({
+                    tipo_incidencia: incidenciaEditar.tipo_incidencia,
+                    descripcion: incidenciaEditar.descripcion || null,
+                    fecha_incidencia: incidenciaEditar.fecha_incidencia,
+                })
+                .eq("id_incidencia", incidenciaEditar.id_incidencia);
+
+            if (error) {
+                setToast({
+                    mostrar: true,
+                    mensaje: "Error al actualizar la incidencia.",
+                    tipo: "error",
+                });
+                return;
+            }
+
+            setToast({
+                mostrar: true,
+                mensaje: "Incidencia actualizada correctamente.",
+                tipo: "exito",
+            });
+
+            setMostrarModalEdicion(false);
+            setIncidenciaEditar(null);
+            await cargarIncidencias();
+
+        } catch (err) {
+            setToast({
+                mostrar: true,
+                mensaje: "Error inesperado al actualizar.",
+                tipo: "error",
+            });
+        }
+    };
+
+    // eliminar incidencias
+    const eliminarIncidencia = async () => {
+        try {
+        if (!incidenciaAEliminar) return;
+
+        const { error } = await supabase
+            .from("Incidencias")
+            .delete()
+            .eq("id_incidencia", incidenciaAEliminar.id_incidencia);
+
+        if (error) {
+            setToast({
+                mostrar: true,
+                mensaje: "Error al eliminar la incidencia.",
+                tipo: "error",
+            });
+            return;
+        }
+
+        setToast({
+            mostrar: true,
+            mensaje: "Incidencia eliminada correctamente.",
+            tipo: "exito",
+        });
+
+        setMostrarModalEliminacion(false);
+        setIncidenciaAEliminar(null);
+        await cargarIncidencias();
+
+    } catch (err) {
+        setToast({
+            mostrar: true,
+            mensaje: "Error inesperado al eliminar.",
+            tipo: "error",
+        });
+    }
+};
 
     // Cargar incidencias
     const cargarIncidencias = async () => {
@@ -220,6 +311,21 @@ const Incidencias = () => {
                 nuevaIncidencia={nuevaIncidencia}
                 manejoCambioInput={manejoCambioInput}
                 agregarIncidencia={agregarIncidencia}
+            />
+
+            <ModalEdicionIncidencia
+                mostrarModalEdicion={mostrarModalEdicion}
+                setMostrarModalEdicion={setMostrarModalEdicion}
+                incidenciaEditar={incidenciaEditar}
+                manejoCambioInputEdicion={manejoCambioInputEdicion}
+                actualizarIncidencia={actualizarIncidencia}
+            />
+
+            <ModalEliminacionIncidencia
+                mostrarModalEliminacion={mostrarModalEliminacion}
+                setMostrarModalEliminacion={setMostrarModalEliminacion}
+                eliminarIncidencia={eliminarIncidencia}
+                incidencia={incidenciaAEliminar}
             />
 
             {/* Toast */}

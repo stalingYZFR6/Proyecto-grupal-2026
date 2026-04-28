@@ -1,27 +1,23 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { Container, Nav, Navbar, NavLink, Offcanvas } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
+import { Container, Nav, Navbar, Offcanvas } from "react-bootstrap";
 import logo from "../../assets/logo.jpg";
 import { supabase } from "../../database/supabaseconfig";
 import "bootstrap-icons/font/bootstrap-icons.css";
 
-// 👇 IMPORTAR LA MASCOTA
 import MascotaChibi from "../MascotaChibi";
 
 const NavbarModaExpress = () => {
-    const [mostrarMenu, setMostrarMenu] = useState(false);
     const [isDarkMode, setIsDarkMode] = useState(true);
-
     const navigate = useNavigate();
-    const location = useLocation();
 
     const NOMBRE_MARCA = "Assis Tech";
 
+    // ================= DARK MODE =================
     const toggleDarkMode = () => {
         const newMode = !isDarkMode;
         setIsDarkMode(newMode);
-        localStorage.setItem("darkMode", newMode);
-
+        localStorage.setItem("darkMode", newMode.toString());
         document.documentElement.setAttribute(
             "data-bs-theme",
             newMode ? "dark" : "light"
@@ -32,7 +28,8 @@ const NavbarModaExpress = () => {
         const savedMode = localStorage.getItem("darkMode");
         const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
 
-        const shouldBeDark = savedMode !== null ? savedMode === "true" : prefersDark;
+        const shouldBeDark =
+            savedMode !== null ? savedMode === "true" : prefersDark;
 
         setIsDarkMode(shouldBeDark);
         document.documentElement.setAttribute(
@@ -41,99 +38,159 @@ const NavbarModaExpress = () => {
         );
     }, []);
 
-    const manejarToggle = () => setMostrarMenu(!mostrarMenu);
-
     const manejarNavegacion = (ruta) => {
         navigate(ruta);
-        setMostrarMenu(false);
     };
 
     const cerrarSesion = async () => {
         try {
             const { error } = await supabase.auth.signOut();
             if (error) throw error;
-
             localStorage.removeItem("usuario-supabase");
             navigate("/login");
         } catch (err) {
-            console.error(err.message);
+            console.error("Error cerrando sesión:", err.message);
         }
     };
 
+    const rutas = [
+        { path: "/", label: "Inicio", icon: "bi-house-door" },
+        { path: "/empleados", label: "Empleados", icon: "bi-people" },
+        { path: "/incidencias", label: "Incidencias", icon: "bi-exclamation-triangle" },
+        { path: "/productos", label: "Productos", icon: "bi-box-seam" },
+        { path: "/catalogo", label: "Catálogo", icon: "bi-images" },
+    ];
+
     return (
         <>
-            {/* 🧸 MASCOTA */}
             <MascotaChibi />
 
             <Navbar
-                expand="md"
+                expand="sm" // 🔥 CLAVE
                 fixed="top"
-                className="shadow-lg"
-                variant="dark"
                 bg="dark"
+                variant="dark"
+                className="shadow-lg"
             >
                 <Container>
+
+                    {/* LOGO */}
                     <Navbar.Brand
                         onClick={() => manejarNavegacion("/")}
-                        className="text-white fw-bold d-flex align-items-center"
                         style={{ cursor: "pointer" }}
+                        className="d-flex align-items-center gap-2 text-white fw-bold"
                     >
                         <img
-                            alt="logo"
                             src={logo}
-                            width="45"
-                            height="45"
-                            className="me-2 rounded"
+                            alt="logo"
+                            width="48"
+                            height="48"
+                            className="rounded-3"
                         />
-                        <h4 className="mb-0">{NOMBRE_MARCA}</h4>
+                        <span className="d-none d-lg-inline">
+                            {NOMBRE_MARCA}
+                        </span>
                     </Navbar.Brand>
 
-                    <Navbar.Toggle onClick={manejarToggle} />
+                    <Navbar.Toggle aria-controls="offcanvas-main" />
 
-                    <Navbar.Offcanvas
-                        show={mostrarMenu}
-                        onHide={() => setMostrarMenu(false)}
-                        placement="end"
-                        className="bg-dark text-white"
+                    {/* 🔥 BARRA NORMAL */}
+                    <Navbar.Collapse
+                        id="offcanvas-main"
+                        className="d-none d-sm-flex"
                     >
-                        <Offcanvas.Header closeButton closeVariant="white">
-                            <Offcanvas.Title>Menú</Offcanvas.Title>
+                        <Nav className="ms-auto align-items-center gap-4">
+
+                            {rutas.map((item) => (
+                                <Nav.Link
+                                    key={item.path}
+                                    onClick={() => manejarNavegacion(item.path)}
+                                >
+                                    <i className={`bi ${item.icon} fs-5`}></i>
+                                    <span className="ms-2 d-none d-lg-inline">
+                                        {item.label}
+                                    </span>
+                                </Nav.Link>
+                            ))}
+
+                            {/* DARK MODE */}
+                            <Nav.Link onClick={toggleDarkMode}>
+                                <i
+                                    className={`bi ${
+                                        isDarkMode ? "bi-sun" : "bi-moon"
+                                    } fs-5`}
+                                ></i>
+                                <span className="ms-2 d-none d-lg-inline">
+                                    {isDarkMode ? "Claro" : "Oscuro"}
+                                </span>
+                            </Nav.Link>
+
+                            {/* LOGOUT */}
+                            <Nav.Link
+                                onClick={cerrarSesion}
+                                className="text-danger"
+                            >
+                                <i className="bi bi-box-arrow-right fs-5"></i>
+                                <span className="ms-2 d-none d-lg-inline">
+                                    Salir
+                                </span>
+                            </Nav.Link>
+
+                        </Nav>
+                    </Navbar.Collapse>
+
+                    {/* 🔥 OFFCANVAS SOLO MÓVIL */}
+                    <Navbar.Offcanvas
+                        id="offcanvas-main"
+                        placement="end"
+                        className="d-sm-none"
+                    >
+                        <Offcanvas.Header closeButton>
+                            <Offcanvas.Title>
+                                {NOMBRE_MARCA}
+                            </Offcanvas.Title>
                         </Offcanvas.Header>
 
                         <Offcanvas.Body>
-                            <Nav className="ms-auto">
+                            <Nav className="flex-column">
 
-                                <Nav.Link onClick={() => manejarNavegacion("/")}>
-                                    Inicio
-                                </Nav.Link>
-
-                                <Nav.Link onClick={() => manejarNavegacion("/empleados")}>
-                                    Empleados
-                                </Nav.Link>
-
-                                <Nav.Link onClick={() => manejarNavegacion("/incidencias")}>
-                                    Incidencias
-                                </Nav.Link>
-
-                                <Nav.Link onClick={() => manejarNavegacion("/productos")}>
-                                    Productos
-                                </Nav.Link>
-
-                                <Nav.Link onClick={() => manejarNavegacion("/catalogo")}>
-                                    Catálogo
-                                </Nav.Link>
+                                {rutas.map((item) => (
+                                    <Nav.Link
+                                        key={item.path}
+                                        onClick={() =>
+                                            manejarNavegacion(item.path)
+                                        }
+                                    >
+                                        <i
+                                            className={`bi ${item.icon} me-3`}
+                                        ></i>
+                                        {item.label}
+                                    </Nav.Link>
+                                ))}
 
                                 <Nav.Link onClick={toggleDarkMode}>
-                                    {isDarkMode ? "Modo Claro" : "Modo Oscuro"}
+                                    <i
+                                        className={`bi ${
+                                            isDarkMode ? "bi-sun" : "bi-moon"
+                                        } me-3`}
+                                    ></i>
+                                    {isDarkMode
+                                        ? "Modo Claro"
+                                        : "Modo Oscuro"}
                                 </Nav.Link>
 
-                                <NavLink onClick={cerrarSesion}>
+                                <Nav.Link
+                                    onClick={cerrarSesion}
+                                    className="text-danger mt-3"
+                                >
+                                    <i className="bi bi-box-arrow-right me-3"></i>
                                     Cerrar sesión
-                                </NavLink>
+                                </Nav.Link>
 
                             </Nav>
                         </Offcanvas.Body>
                     </Navbar.Offcanvas>
+
                 </Container>
             </Navbar>
         </>

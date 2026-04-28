@@ -9,8 +9,9 @@ import MascotaChibi from "../MascotaChibi";
 
 const NavbarModaExpress = () => {
     const [isDarkMode, setIsDarkMode] = useState(true);
-    const navigate = useNavigate();
+    const [mostrarMenu, setMostrarMenu] = useState(false); // 🔥 control del offcanvas
 
+    const navigate = useNavigate();
     const NOMBRE_MARCA = "Assis Tech";
 
     // ================= DARK MODE =================
@@ -38,15 +39,19 @@ const NavbarModaExpress = () => {
         );
     }, []);
 
+    // 🔥 ahora cierra el menú al navegar
     const manejarNavegacion = (ruta) => {
         navigate(ruta);
+        setMostrarMenu(false);
     };
 
     const cerrarSesion = async () => {
         try {
             const { error } = await supabase.auth.signOut();
             if (error) throw error;
+
             localStorage.removeItem("usuario-supabase");
+            setMostrarMenu(false); // 🔥 cerrar menú
             navigate("/login");
         } catch (err) {
             console.error("Error cerrando sesión:", err.message);
@@ -66,7 +71,7 @@ const NavbarModaExpress = () => {
             <MascotaChibi />
 
             <Navbar
-                expand="sm" // 🔥 CLAVE
+                expand="sm"
                 fixed="top"
                 bg="dark"
                 variant="dark"
@@ -92,13 +97,14 @@ const NavbarModaExpress = () => {
                         </span>
                     </Navbar.Brand>
 
-                    <Navbar.Toggle aria-controls="offcanvas-main" />
+                    {/* 🔥 BOTÓN HAMBURGUESA CONTROLADO */}
+                    <Navbar.Toggle
+                        aria-controls="offcanvas-main"
+                        onClick={() => setMostrarMenu(true)}
+                    />
 
                     {/* 🔥 BARRA NORMAL */}
-                    <Navbar.Collapse
-                        id="offcanvas-main"
-                        className="d-none d-sm-flex"
-                    >
+                    <Navbar.Collapse className="d-none d-sm-flex">
                         <Nav className="ms-auto align-items-center gap-4">
 
                             {rutas.map((item) => (
@@ -139,10 +145,12 @@ const NavbarModaExpress = () => {
                         </Nav>
                     </Navbar.Collapse>
 
-                    {/* 🔥 OFFCANVAS SOLO MÓVIL */}
+                    {/* 🔥 OFFCANVAS CONTROLADO */}
                     <Navbar.Offcanvas
                         id="offcanvas-main"
                         placement="end"
+                        show={mostrarMenu}
+                        onHide={() => setMostrarMenu(false)}
                         className="d-sm-none"
                     >
                         <Offcanvas.Header closeButton>

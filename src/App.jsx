@@ -17,13 +17,20 @@ const App = () => {
       <Encabezado />
       <main className="margen-superior-main">
         <Routes>
+
+          {/* Pública */}
           <Route path="/login" element={<Login />} />
+
+          {/* Protegidas */}
           <Route path="/" element={<RutaProtegida><Inicio /></RutaProtegida>} />
           <Route path="/empleados" element={<RutaProtegida><Empleados /></RutaProtegida>} />
-          <Route path="/incidencias" element={<Incidencias />} />
-          <Route path="/catalogo" element={<Catalogo />} />
+          <Route path="/incidencias" element={<RutaProtegida><Incidencias /></RutaProtegida>} />
+          <Route path="/catalogo" element={<RutaProtegida><Catalogo /></RutaProtegida>} />
           <Route path="/productos" element={<RutaProtegida><Productos /></RutaProtegida>} />
+
+          {/* 404 */}
           <Route path="*" element={<Pagina404 />} />
+
         </Routes>
       </main>
     </Router>

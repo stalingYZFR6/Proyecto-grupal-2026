@@ -8,6 +8,8 @@ import ModalEliminacionIncidencia from "../components/Incidencias/ModalEliminaci
 import ModalEdicionIncidencia from "../components/Incidencias/ModalEdicionIncidencia";
 import TablaIncidencias from "../components/Incidencias/TablaIncidencia";
 import NotificacionOperacion from "../components/NotificacionOperacion";
+import TarjetaIncidencia from "../components/Incidencias/TarjetaIncidencia";
+
 
 const Incidencias = () => {
 
@@ -255,11 +257,14 @@ const Incidencias = () => {
                     <Button
                         onClick={() => setMostrarModal(true)}
                         size="lg"
-                        variant="warning"
-                        className="d-flex align-items-center gap-2 shadow-sm"
+                        className="shadow-sm d-flex align-items-center justify-content-center gap-2"
                     >
                         <i className="bi bi-plus-lg"></i>
-                        Nueva Incidencia
+
+                        {/* Texto solo en pantallas md o mayores */}
+                        <span className="d-none d-md-inline">
+                            Nueva Incidencia
+                        </span>
                     </Button>
                 </Col>
             </Row>
@@ -293,14 +298,33 @@ const Incidencias = () => {
                         </div>
                     )}
 
-                    {/* Tabla */}
-                    {!cargando && (
-                        <TablaIncidencias
-                            incidencias={incidenciasFiltradas}
+                   {/* TABLA EN PC */}
+{!cargando && (
+    <>
+        <div className="d-none d-md-block">
+            <TablaIncidencias
+                incidencias={incidenciasFiltradas}
+                abrirModalEdicion={abrirModalEdicion}
+                abrirModalEliminacion={abrirModalEliminacion}
+            />
+        </div>
+
+        {/* TARJETAS EN MÓVIL */}
+        <div className="d-block d-md-none">
+            <Row className="g-3">
+                {incidenciasFiltradas.map((incidencia) => (
+                    <Col xs={12} key={incidencia.id_incidencia}>
+                        <TarjetaIncidencia
+                            incidencia={incidencia}
                             abrirModalEdicion={abrirModalEdicion}
                             abrirModalEliminacion={abrirModalEliminacion}
                         />
-                    )}
+                    </Col>
+                ))}
+            </Row>
+        </div>
+    </>
+)}
                 </Card.Body>
             </Card>
 

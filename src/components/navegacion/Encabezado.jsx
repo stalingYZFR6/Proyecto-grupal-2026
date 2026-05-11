@@ -62,7 +62,8 @@ const NavbarModaExpress = () => {
         { path: "/", label: "Inicio", icon: "bi-house-door" },
         { path: "/empleados", label: "Empleados", icon: "bi-people" },
         { path: "/incidencias", label: "Incidencias", icon: "bi-exclamation-triangle" },
-       // { path: "/productos", label: "Productos", icon: "bi-box-seam" },
+        { path: "/asistencias", label: "Asistencias", icon: "bi-box-seam" },
+        { path: "/turnos", label: "Turnos", icon: "bi-box-seam" },
         // { path: "/catalogo", label: "Catálogo", icon: "bi-images" },
     ];
 

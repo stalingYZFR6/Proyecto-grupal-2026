@@ -69,7 +69,7 @@ const Empleados = () => {
             }
 
             const { error } = await supabase
-                .from("Empleado")
+                .from("empleado")
                 .insert([
                     {
                         nombre: nuevoEmpleado.nombre,
@@ -127,7 +127,7 @@ const Empleados = () => {
         if (!empleadoEditar) return;
 
         const { error } = await supabase
-            .from("Empleado")
+            .from("empleado")
             .update({
                 nombre: empleadoEditar.nombre,
                 apellido: empleadoEditar.apellido,
@@ -173,7 +173,7 @@ const Empleados = () => {
             if (!empleadoAEliminar) return;
 
             const { error } = await supabase
-                .from("Empleado")
+                .from("empleado")
                 .delete()
                 .eq("id_empleado", empleadoAEliminar.id_empleado);
 
@@ -210,7 +210,7 @@ const Empleados = () => {
         try {
             setCargando(true);
             const { data, error } = await supabase
-                .from("Empleado")
+                .from("empleado")
                 .select("*")
                 .order("id_empleado", { ascending: true });
 
@@ -282,7 +282,7 @@ const Empleados = () => {
                             style={{ minWidth: "45px" }}
                         >
                             <i className="bi bi-plus-lg"></i>
-
+ 
                             {/* Texto solo en pantallas medianas o grandes */}
                             <span className="d-none d-md-inline">
                                 Nuevo Empleado

@@ -6,7 +6,8 @@ import Inicio from "./views/Inicio";
 import Empleados from './views/Empleado';
 import Incidencias from './views/Incidencias';
 import Catalogo from "./views/Catalogo";
-import Productos from "./views/Productos";
+import Asistencias from './views/Asistencias';
+import Turnos from './views/Turnos';
 import Login from "./views/Login";
 import RutaProtegida from "./components/rutas/RutaProtegida";
 import Pagina404 from "./views/Pagina404";
@@ -26,7 +27,8 @@ const App = () => {
           <Route path="/empleados" element={<RutaProtegida><Empleados /></RutaProtegida>} />
           <Route path="/incidencias" element={<RutaProtegida><Incidencias /></RutaProtegida>} />
           <Route path="/catalogo" element={<RutaProtegida><Catalogo /></RutaProtegida>} />
-          <Route path="/productos" element={<RutaProtegida><Productos /></RutaProtegida>} />
+          <Route path="/asistencias" element={<RutaProtegida><Asistencias /></RutaProtegida>} />
+          <Route path="/turnos" element={<RutaProtegida><Turnos /></RutaProtegida>} />
 
           {/* 404 */}
           <Route path="*" element={<Pagina404 />} />

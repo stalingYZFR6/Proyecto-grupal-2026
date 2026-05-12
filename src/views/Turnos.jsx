@@ -7,182 +7,184 @@ import {
     Button,
     Table,
     Spinner,
-    Alert,
-    Badge,
 } from "react-bootstrap";
 
 import { supabase } from "../database/supabaseconfig";
-
 import ModalRegistroTurno from "../components/turnos/ModalRegistroTurnos";
+import ModalEdicionTurno from "../components/turnos/ModalEdicionTurnos";
+import ModalEliminacionTurnos from "../components/turnos/ModalEliminacionTurnos"; // 1. Importación agregada
 
 const Turnos = () => {
-
     const [turnos, setTurnos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-
-    const [mostrarModal, setMostrarModal] = useState(false);
+    const [mostrarModalRegistro, setMostrarModalRegistro] = useState(false);
+    const [mostrarModalEdicion, setMostrarModalEdicion] = useState(false);
+    const [mostrarModalEliminar, setMostrarModalEliminar] = useState(false); // 2. Estado para el modal de eliminar
+    const [turnoSeleccionado, setTurnoSeleccionado] = useState(null);
 
     useEffect(() => {
         obtenerTurnos();
     }, []);
 
     const obtenerTurnos = async () => {
-
         setLoading(true);
-
         try {
-
             const { data, error } = await supabase
                 .from("turnos")
                 .select("*")
                 .order("id_turno", { ascending: true });
-
             if (error) throw error;
-
             setTurnos(data || []);
-
         } catch (err) {
-
-            console.error(err);
             setError("Error al cargar turnos.");
-
         } finally {
-
             setLoading(false);
         }
     };
 
+    const prepararEdicion = (turno) => {
+        setTurnoSeleccionado(turno);
+        setMostrarModalEdicion(true);
+    };
+
+    // 3. Función para preparar la eliminación
+    const prepararEliminacion = (turno) => {
+        setTurnoSeleccionado(turno);
+        setMostrarModalEliminar(true);
+    };
+
     const formatearHora = (hora) => {
-
         if (!hora) return "";
-
         return hora.slice(0, 5);
     };
 
     return (
-        <Container fluid className="py-4">
+        <Container fluid className="py-4 bg-dark-page" style={{ minHeight: "100vh" }}>
+            <style>
+                {`
+                .bg-dark-page { background-color: #1a1d21; }
+                .card-custom { background-color: #212529; border: 1px solid #2d3136; border-radius: 10px; }
+                .table-custom { color: #dee2e6; }
+                
+                .btn-edit-custom, .btn-delete-custom {
+                    width: 40px;
+                    height: 40px;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    background: transparent;
+                    border-radius: 8px;
+                    margin: 0 5px;
+                    transition: all 0.2s;
+                }
 
-            {/* HEADER */}
+                .btn-edit-custom {
+                    border: 2px solid #ffc107 !important;
+                    color: #ffc107 !important;
+                }
+                .btn-edit-custom:hover {
+                    background: rgba(255, 193, 7, 0.1);
+                    transform: scale(1.05);
+                }
+
+                .btn-delete-custom {
+                    border: 2px solid #ff4d4d !important;
+                    color: #ff4d4d !important;
+                }
+                .btn-delete-custom:hover {
+                    background: rgba(255, 77, 77, 0.1);
+                    transform: scale(1.05);
+                }
+                
+                .bi-pencil, .bi-trash { font-size: 1.2rem; }
+                `}
+            </style>
+
             <Row className="mb-4 align-items-center">
-
                 <Col>
-                    <h2 className="fw-bold">
-                        <i className="bi bi-clock-history me-2"></i>
-                        Gestión de Turnos
-                    </h2>
-
-                    <p className="text-muted mb-0">
-                        Administración de horarios laborales
-                    </p>
+                    <h2 className="fw-bold text-white">Gestión de Turnos</h2>
                 </Col>
-
                 <Col xs="auto">
-                    <Button
-                        variant="success"
-                        className="shadow-sm"
-                        onClick={() => setMostrarModal(true)}
-                    >
-                        <i className="bi bi-plus-lg me-2"></i>
-                        Nuevo Turno
+                    <Button variant="success" onClick={() => setMostrarModalRegistro(true)}>
+                        <i className="bi bi-plus-lg me-2"></i> Nuevo Turno
                     </Button>
                 </Col>
-
             </Row>
 
-            {/* ERROR */}
-            {error && (
-                <Alert variant="danger">
-                    {error}
-                </Alert>
-            )}
-
-            {/* TABLA */}
-            <Card className="shadow-sm border-0">
-
+            <Card className="card-custom shadow-sm">
                 <Card.Body>
-
                     {loading ? (
-
-                        <div className="text-center py-5">
-                            <Spinner animation="border" />
-                        </div>
-
-                    ) : turnos.length === 0 ? (
-
-                        <Alert variant="light" className="mb-0">
-                            No hay turnos registrados.
-                        </Alert>
-
+                        <div className="text-center py-5"><Spinner animation="border" variant="warning" /></div>
                     ) : (
-
-                        <div className="table-responsive">
-
-                            <Table hover align="middle">
-
-                                <thead className="table-light">
-                                    <tr>
-                                        <th>#</th>
-                                        <th>Tipo Turno</th>
-                                        <th>Hora Inicio</th>
-                                        <th>Hora Final</th>
-                                        <th>Estado</th>
+                        <Table responsive borderless className="table-custom align-middle">
+                            <thead style={{ borderBottom: "1px solid #3d4248" }}>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Tipo Turno</th>
+                                    <th>Hora Inicio</th>
+                                    <th>Hora Final</th>
+                                    <th className="text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {turnos.map((turno) => (
+                                    <tr key={turno.id_turno} style={{ borderBottom: "1px solid #2d3136" }}>
+                                        <td>{turno.id_turno}</td>
+                                        <td className="fw-bold text-white">{turno.tipo_turno}</td>
+                                        <td>{formatearHora(turno.hora_inicio)}</td>
+                                        <td>{formatearHora(turno.hora_fin)}</td>
+                                        <td className="text-center">
+                                            <button 
+                                                className="btn-edit-custom"
+                                                onClick={() => prepararEdicion(turno)}
+                                                title="Editar"
+                                            >
+                                                <i className="bi bi-pencil"></i>
+                                            </button>
+                                            {/* 4. Botón de eliminar conectado */}
+                                            <button 
+                                                className="btn-delete-custom"
+                                                onClick={() => prepararEliminacion(turno)}
+                                                title="Eliminar"
+                                            >
+                                                <i className="bi bi-trash"></i>
+                                            </button>
+                                        </td>
                                     </tr>
-                                </thead>
-
-                                <tbody>
-
-                                    {turnos.map((turno) => (
-
-                                        <tr key={turno.id_turno}>
-
-                                            <td>
-                                                {turno.id_turno}
-                                            </td>
-
-                                            <td>
-                                                <div className="fw-semibold">
-                                                    {turno.tipo_turno}
-                                                </div>
-                                            </td>
-
-                                            <td>
-                                                {formatearHora(turno.hora_inicio)}
-                                            </td>
-
-                                            <td>
-                                                {formatearHora(turno.hora_fin)}
-                                            </td>
-
-                                            <td>
-                                                <Badge bg="success">
-                                                    Activo
-                                                </Badge>
-                                            </td>
-
-                                        </tr>
-
-                                    ))}
-
-                                </tbody>
-
-                            </Table>
-
-                        </div>
-
+                                ))}
+                            </tbody>
+                        </Table>
                     )}
-
                 </Card.Body>
-
             </Card>
 
-            {/* MODAL */}
             <ModalRegistroTurno
-                show={mostrarModal}
-                handleClose={() => setMostrarModal(false)}
+                show={mostrarModalRegistro}
+                handleClose={() => setMostrarModalRegistro(false)}
                 onRegistroExitoso={obtenerTurnos}
             />
 
+            <ModalEdicionTurno
+                show={mostrarModalEdicion}
+                handleClose={() => {
+                    setMostrarModalEdicion(false);
+                    setTurnoSeleccionado(null);
+                }}
+                turno={turnoSeleccionado}
+                onActualizacionExitosa={obtenerTurnos}
+            />
+
+            {/* 5. Componente del Modal de Eliminación agregado */}
+            <ModalEliminacionTurnos
+                show={mostrarModalEliminar}
+                handleClose={() => {
+                    setMostrarModalEliminar(false);
+                    setTurnoSeleccionado(null);
+                }}
+                turno={turnoSeleccionado}
+                onEliminacionExitosa={obtenerTurnos}
+            />
         </Container>
     );
 };

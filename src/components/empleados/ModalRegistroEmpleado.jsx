@@ -1,22 +1,51 @@
 import React, { useState } from "react";
-import { Modal, Form, Button } from "react-bootstrap";
+import { Modal, Form, Button, Image } from "react-bootstrap";
 
 const ModalRegistroEmpleado = ({
     mostrarModal,
     setMostrarModal,
     nuevoEmpleado,
+    setNuevoEmpleado,
     manejoCambioInput,
     agregarEmpleado,
 }) => {
 
     const [deshabilitado, setDeshabilitado] = useState(false);
 
+    // MANEJAR IMAGEN
+    const manejarImagen = (e) => {
+
+    const archivo = e.target.files[0];
+
+    if (!archivo) return;
+
+    // Liberar preview anterior
+    if (nuevoEmpleado?.preview_imagen) {
+        URL.revokeObjectURL(nuevoEmpleado.preview_imagen);
+    }
+
+    // Nuevo preview temporal
+    const preview = URL.createObjectURL(archivo);
+
+    setNuevoEmpleado({
+        ...nuevoEmpleado,
+
+        // Archivo real
+        archivo_imagen: archivo,
+
+        // Preview visual
+        preview_imagen: preview,
+    });
+};
+
     const handleRegistrar = async () => {
+
         if (deshabilitado) return;
+
         setDeshabilitado(true);
-        
+
         await agregarEmpleado();
-        
+
         setDeshabilitado(false);
     };
 
@@ -27,17 +56,62 @@ const ModalRegistroEmpleado = ({
             backdrop="static"
             keyboard={false}
             centered
-            size="lg"   // Más grande porque tiene más campos
+            size="lg"
         >
+
             <Modal.Header closeButton>
-                <Modal.Title>Registrar Nuevo Empleado</Modal.Title>
+                <Modal.Title>
+                    Registrar Nuevo Empleado
+                </Modal.Title>
             </Modal.Header>
+
             <Modal.Body>
+
                 <Form>
+
+                    {/* FOTO */}
+                    <div className="text-center mb-4">
+
+                        <Image
+                            src={
+                                nuevoEmpleado.preview_imagen ||
+                                "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                            }
+                            roundedCircle
+                            width={120}
+                            height={120}
+                            className="border shadow-sm"
+                            style={{
+                                objectFit: "cover"
+                            }}
+                        />
+
+                        <Form.Group className="mt-3">
+
+                            <Form.Label>
+                                Seleccionar Imagen
+                            </Form.Label>
+
+                            <Form.Control
+                                type="file"
+                                accept="image/*"
+                                onChange={manejarImagen}
+                            />
+
+                        </Form.Group>
+
+                    </div>
+
                     <div className="row">
+
                         <div className="col-md-6">
+
                             <Form.Group className="mb-3">
-                                <Form.Label>Nombre *</Form.Label>
+
+                                <Form.Label>
+                                    Nombre *
+                                </Form.Label>
+
                                 <Form.Control
                                     type="text"
                                     name="nombre"
@@ -46,11 +120,19 @@ const ModalRegistroEmpleado = ({
                                     placeholder="Ej: Juan"
                                     required
                                 />
+
                             </Form.Group>
+
                         </div>
+
                         <div className="col-md-6">
+
                             <Form.Group className="mb-3">
-                                <Form.Label>Apellido *</Form.Label>
+
+                                <Form.Label>
+                                    Apellido *
+                                </Form.Label>
+
                                 <Form.Control
                                     type="text"
                                     name="apellido"
@@ -59,12 +141,19 @@ const ModalRegistroEmpleado = ({
                                     placeholder="Ej: Pérez"
                                     required
                                 />
+
                             </Form.Group>
+
                         </div>
+
                     </div>
 
                     <Form.Group className="mb-3">
-                        <Form.Label>Cédula / DNI *</Form.Label>
+
+                        <Form.Label>
+                            Cédula / DNI *
+                        </Form.Label>
+
                         <Form.Control
                             type="text"
                             name="cedula"
@@ -73,10 +162,15 @@ const ModalRegistroEmpleado = ({
                             placeholder="Ej: 001-123456-0001X"
                             required
                         />
+
                     </Form.Group>
 
                     <Form.Group className="mb-3">
-                        <Form.Label>Correo Electrónico</Form.Label>
+
+                        <Form.Label>
+                            Correo Electrónico
+                        </Form.Label>
+
                         <Form.Control
                             type="email"
                             name="correo"
@@ -84,12 +178,19 @@ const ModalRegistroEmpleado = ({
                             onChange={manejoCambioInput}
                             placeholder="ejemplo@correo.com"
                         />
+
                     </Form.Group>
 
                     <div className="row">
+
                         <div className="col-md-6">
+
                             <Form.Group className="mb-3">
-                                <Form.Label>Teléfono</Form.Label>
+
+                                <Form.Label>
+                                    Teléfono
+                                </Form.Label>
+
                                 <Form.Control
                                     type="text"
                                     name="telefono"
@@ -97,11 +198,19 @@ const ModalRegistroEmpleado = ({
                                     onChange={manejoCambioInput}
                                     placeholder="Ej: 505 1234-5678"
                                 />
+
                             </Form.Group>
+
                         </div>
+
                         <div className="col-md-6">
+
                             <Form.Group className="mb-3">
-                                <Form.Label>Dirección</Form.Label>
+
+                                <Form.Label>
+                                    Dirección
+                                </Form.Label>
+
                                 <Form.Control
                                     type="text"
                                     name="direccion"
@@ -109,28 +218,43 @@ const ModalRegistroEmpleado = ({
                                     onChange={manejoCambioInput}
                                     placeholder="Dirección completa"
                                 />
+
                             </Form.Group>
+
                         </div>
+
                     </div>
+
                 </Form>
+
             </Modal.Body>
+
             <Modal.Footer>
-                <Button variant="secondary" onClick={() => setMostrarModal(false)}>
+
+                <Button
+                    variant="secondary"
+                    onClick={() => setMostrarModal(false)}
+                >
                     Cancelar
                 </Button>
+
                 <Button
                     variant="primary"
                     onClick={handleRegistrar}
                     disabled={
-                        !nuevoEmpleado.nombre?.trim() || 
-                        !nuevoEmpleado.apellido?.trim() || 
+                        !nuevoEmpleado.nombre?.trim() ||
+                        !nuevoEmpleado.apellido?.trim() ||
                         !nuevoEmpleado.cedula?.trim() ||
                         deshabilitado
                     }
                 >
-                    {deshabilitado ? "Guardando..." : "Guardar Empleado"}
+                    {deshabilitado
+                        ? "Guardando..."
+                        : "Guardar Empleado"}
                 </Button>
+
             </Modal.Footer>
+
         </Modal>
     );
 };

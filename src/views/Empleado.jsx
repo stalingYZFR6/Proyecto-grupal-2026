@@ -1,8 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Button, Spinner, Card, Badge, Form } from "react-bootstrap";
+import {
+    Container,
+    Row,
+    Col,
+    Button,
+    Spinner,
+    Card,
+    Badge,
+    Form,
+} from "react-bootstrap";
+
 import { supabase } from "../database/supabaseconfig";
 
-// Importa tus componentes adaptados
+// COMPONENTES
 import ModalEliminacionEmpleado from "../components/empleados/ModalEliminacionEmpleado";
 import ModalEdicionEmpleado from "../components/empleados/ModalEdicionEmpleado";
 import ModalRegistroEmpleado from "../components/empleados/ModalRegistroEmpleado";
@@ -12,10 +22,15 @@ import NotificacionOperacion from "../components/NotificacionOperacion";
 
 const Empleados = () => {
 
-    const [toast, setToast] = useState({ mostrar: false, mensaje: "", tipo: "" });
+    const [toast, setToast] = useState({
+        mostrar: false,
+        mensaje: "",
+        tipo: "",
+    });
+
     const [mostrarModal, setMostrarModal] = useState(false);
 
-    // Estado para nuevo empleado
+    // NUEVO EMPLEADO
     const [nuevoEmpleado, setNuevoEmpleado] = useState({
         nombre: "",
         apellido: "",
@@ -23,49 +38,111 @@ const Empleados = () => {
         correo: "",
         telefono: "",
         direccion: "",
+        archivo_imagen: null,
+        preview_imagen: "",
+        url_imagen: "",
     });
 
+    // LISTA EMPLEADOS
     const [empleados, setEmpleados] = useState([]);
-    const [cargando, setCargando] = useState(true);
-    const [busqueda, setBusqueda] = useState("");   // ← Añadido para búsqueda
 
-    // Estados para edición y eliminación (por si los necesitas después)
+    const [cargando, setCargando] = useState(true);
+
+    const [busqueda, setBusqueda] = useState("");
+
+    // EDICIÓN
     const [mostrarModalEdicion, setMostrarModalEdicion] = useState(false);
-    const [mostrarModalEliminacion, setMostrarModalEliminacion] = useState(false);
+
     const [empleadoEditar, setEmpleadoEditar] = useState(null);
+
+    // ELIMINACIÓN
+    const [mostrarModalEliminacion, setMostrarModalEliminacion] = useState(false);
+
     const [empleadoAEliminar, setEmpleadoAEliminar] = useState(null);
 
-    // Manejo de cambios en los inputs del modal
+    // =========================
+    // MANEJO INPUT REGISTRO
+    // =========================
     const manejoCambioInput = (e) => {
+
         const { name, value } = e.target;
+
         setNuevoEmpleado((prev) => ({
             ...prev,
             [name]: value,
         }));
     };
 
-    // 👇 AGREGA ESTE JUSTO DEBAJO
+    // =========================
+    // MANEJO INPUT EDICIÓN
+    // =========================
     const manejoCambioInputEdicion = (e) => {
+
         const { name, value } = e.target;
+
         setEmpleadoEditar((prev) => ({
             ...prev,
             [name]: value,
         }));
     };
 
+    // =========================
+    // SUBIR IMAGEN A SUPABASE
+    // =========================
+    const subirImagen = async (archivo) => {
 
-    // Función para agregar empleado
+        if (!archivo) return null;
+
+        const nombreArchivo = `${Date.now()}-${archivo.name}`;
+
+        const { error } = await supabase.storage
+            .from("imagenes_empleados")
+            .upload(nombreArchivo, archivo);
+
+        if (error) {
+
+            console.error("Error subiendo imagen:", error.message);
+
+            return null;
+        }
+
+        const { data } = supabase.storage
+            .from("imagenes_empleados")
+            .getPublicUrl(nombreArchivo);
+
+        return data.publicUrl;
+    };
+
+    // =========================
+    // AGREGAR EMPLEADO
+    // =========================
     const agregarEmpleado = async () => {
+
         try {
-            if (!nuevoEmpleado.nombre.trim() ||
+
+            if (
+                !nuevoEmpleado.nombre.trim() ||
                 !nuevoEmpleado.apellido.trim() ||
-                !nuevoEmpleado.cedula.trim()) {
+                !nuevoEmpleado.cedula.trim()
+            ) {
+
                 setToast({
                     mostrar: true,
-                    mensaje: "Los campos Nombre, Apellido y Cédula son obligatorios.",
+                    mensaje: "Nombre, Apellido y Cédula son obligatorios.",
                     tipo: "advertencia",
                 });
+
                 return;
+            }
+
+            // SUBIR IMAGEN
+            let imagenURL = null;
+
+            if (nuevoEmpleado.archivo_imagen) {
+
+                imagenURL = await subirImagen(
+                    nuevoEmpleado.archivo_imagen
+                );
             }
 
             const { error } = await supabase
@@ -78,27 +155,30 @@ const Empleados = () => {
                         correo: nuevoEmpleado.correo || null,
                         telefono: nuevoEmpleado.telefono || null,
                         direccion: nuevoEmpleado.direccion || null,
+                        url_imagen: imagenURL,
                     },
                 ]);
 
             if (error) {
-                console.error("Error al agregar empleado:", error.message);
+
+                console.error(error);
+
                 setToast({
                     mostrar: true,
-                    mensaje: "Error al registrar el empleado. Verifique la cédula (debe ser única).",
+                    mensaje: "Error al registrar empleado.",
                     tipo: "error",
                 });
+
                 return;
             }
 
-            // Éxito
             setToast({
                 mostrar: true,
-                mensaje: `Empleado ${nuevoEmpleado.nombre} ${nuevoEmpleado.apellido} registrado exitosamente.`,
+                mensaje: "Empleado registrado correctamente.",
                 tipo: "exito",
             });
 
-            // Limpiar formulario y cerrar modal
+            // LIMPIAR
             setNuevoEmpleado({
                 nombre: "",
                 apellido: "",
@@ -106,70 +186,103 @@ const Empleados = () => {
                 correo: "",
                 telefono: "",
                 direccion: "",
+                archivo_imagen: null,
+                preview_imagen: "",
+                url_imagen: "",
             });
+
             setMostrarModal(false);
 
             await cargarEmpleados();
 
         } catch (err) {
-            console.error("Excepción al agregar empleado:", err.message);
+
+            console.error(err);
+
             setToast({
                 mostrar: true,
-                mensaje: "Error inesperado al registrar el empleado.",
+                mensaje: "Error inesperado.",
                 tipo: "error",
             });
         }
     };
 
-     // Función para editar empleado
+    // =========================
+    // ACTUALIZAR EMPLEADO
+    // =========================
     const actualizarEmpleado = async () => {
-    try {
-        if (!empleadoEditar) return;
 
-        const { error } = await supabase
-            .from("empleado")
-            .update({
-                nombre: empleadoEditar.nombre,
-                apellido: empleadoEditar.apellido,
-                cedula: empleadoEditar.cedula,
-                correo: empleadoEditar.correo || null,
-                telefono: empleadoEditar.telefono || null,
-                direccion: empleadoEditar.direccion || null,
-            })
-            .eq("id_empleado", empleadoEditar.id_empleado);
+        try {
 
-        if (error) {
+            if (!empleadoEditar) return;
+
+            let imagenURL = empleadoEditar.url_imagen || null;
+
+            // SI CAMBIÓ IMAGEN
+            if (empleadoEditar.archivo_imagen) {
+
+                imagenURL = await subirImagen(
+                    empleadoEditar.archivo_imagen
+                );
+            }
+
+            const { error } = await supabase
+                .from("empleado")
+                .update({
+                    nombre: empleadoEditar.nombre,
+                    apellido: empleadoEditar.apellido,
+                    cedula: empleadoEditar.cedula,
+                    correo: empleadoEditar.correo || null,
+                    telefono: empleadoEditar.telefono || null,
+                    direccion: empleadoEditar.direccion || null,
+                    url_imagen: imagenURL,
+                })
+                .eq("id_empleado", empleadoEditar.id_empleado);
+
+            if (error) {
+
+                console.error(error);
+
+                setToast({
+                    mostrar: true,
+                    mensaje: "Error al actualizar empleado.",
+                    tipo: "error",
+                });
+
+                return;
+            }
+
             setToast({
                 mostrar: true,
-                mensaje: "Error al actualizar el empleado.",
+                mensaje: "Empleado actualizado correctamente.",
+                tipo: "exito",
+            });
+
+            setMostrarModalEdicion(false);
+
+            setEmpleadoEditar(null);
+
+            await cargarEmpleados();
+
+        } catch (err) {
+
+            console.error(err);
+
+            setToast({
+                mostrar: true,
+                mensaje: "Error inesperado.",
                 tipo: "error",
             });
-            return;
         }
+    };
 
-        setToast({
-            mostrar: true,
-            mensaje: "Empleado actualizado correctamente.",
-            tipo: "exito",
-        });
-
-        setMostrarModalEdicion(false);
-        setEmpleadoEditar(null);
-        await cargarEmpleados();
-
-    } catch (err) {
-        setToast({
-            mostrar: true,
-            mensaje: "Error inesperado al actualizar.",
-            tipo: "error",
-        });
-    }
-};
-
-
-    // Función para eliminar empleado
+    // =========================
+    // ELIMINAR EMPLEADO
+    // =========================
     const eliminarEmpleado = async () => {
+
         try {
+
             if (!empleadoAEliminar) return;
 
             const { error } = await supabase
@@ -178,11 +291,13 @@ const Empleados = () => {
                 .eq("id_empleado", empleadoAEliminar.id_empleado);
 
             if (error) {
+
                 setToast({
                     mostrar: true,
-                    mensaje: "Error al eliminar el empleado.",
+                    mensaje: "Error al eliminar empleado.",
                     tipo: "error",
                 });
+
                 return;
             }
 
@@ -193,174 +308,272 @@ const Empleados = () => {
             });
 
             setMostrarModalEliminacion(false);
+
             setEmpleadoAEliminar(null);
+
             await cargarEmpleados();
 
         } catch (err) {
+
+            console.error(err);
+
             setToast({
                 mostrar: true,
-                mensaje: "Error inesperado al eliminar.",
+                mensaje: "Error inesperado.",
                 tipo: "error",
             });
         }
     };
 
-    // Función para cargar empleados
+    // =========================
+    // CARGAR EMPLEADOS
+    // =========================
     const cargarEmpleados = async () => {
+
         try {
+
             setCargando(true);
+
             const { data, error } = await supabase
                 .from("empleado")
                 .select("*")
-                .order("id_empleado", { ascending: true });
+                .order("id_empleado", {
+                    ascending: true,
+                });
 
             if (error) {
-                console.error("Error al cargar empleados:", error.message);
+
+                console.error(error);
+
                 setToast({
                     mostrar: true,
-                    mensaje: "Error al cargar la lista de empleados.",
+                    mensaje: "Error al cargar empleados.",
                     tipo: "error",
                 });
+
                 return;
             }
 
             setEmpleados(data || []);
+
         } catch (err) {
-            console.error("Excepción al cargar empleados:", err.message);
+
+            console.error(err);
+
             setToast({
                 mostrar: true,
-                mensaje: "Error inesperado al cargar empleados.",
+                mensaje: "Error inesperado.",
                 tipo: "error",
             });
+
         } finally {
+
             setCargando(false);
         }
     };
 
-    // Abrir modal de edición
+    // =========================
+    // ABRIR MODALES
+    // =========================
     const abrirModalEdicion = (empleado) => {
+
         setEmpleadoEditar(empleado);
+
         setMostrarModalEdicion(true);
     };
 
-    // Abrir modal de eliminación
     const abrirModalEliminacion = (empleado) => {
+
         setEmpleadoAEliminar(empleado);
+
         setMostrarModalEliminacion(true);
     };
 
-    // Filtrado de empleados (mantengo la funcionalidad original)
+    // =========================
+    // FILTRAR
+    // =========================
     const empleadosFiltrados = empleados.filter((emp) =>
-        `${emp.nombre} ${emp.apellido}`.toLowerCase().includes(busqueda.toLowerCase()) ||
-        emp.cedula.toLowerCase().includes(busqueda.toLowerCase())
+        `${emp.nombre} ${emp.apellido}`
+            .toLowerCase()
+            .includes(busqueda.toLowerCase()) ||
+        emp.cedula
+            .toLowerCase()
+            .includes(busqueda.toLowerCase())
     );
 
-    // Cargar empleados al montar el componente
+    // =========================
+    // INICIO
+    // =========================
     useEffect(() => {
+
         cargarEmpleados();
+
     }, []);
 
     return (
         <Container fluid className="py-4 px-3 px-md-4">
-            {/* Header Moderno */}
+
+            {/* HEADER */}
             <Row className="align-items-center mb-4">
+
                 <Col>
+
                     <div className="d-flex align-items-center gap-3">
+
                         <i className="bi bi-people-fill fs-1 text-primary"></i>
+
                         <div>
-                            <h2 className="mb-1 fw-bold">Gestión de Empleados</h2>
-                            <p className="text-muted mb-0">Administra el personal registrado en el sistema</p>
+
+                            <h2 className="mb-1 fw-bold">
+                                Gestión de Empleados
+                            </h2>
+
+                            <p className="text-muted mb-0">
+                                Administra el personal registrado
+                            </p>
+
                         </div>
+
                     </div>
+
                 </Col>
+
                 <Col xs="auto">
-                    <Col xs="auto">
-                        <Button
-                            onClick={() => setMostrarModal(true)}
-                            variant="primary"
-                            className="d-flex align-items-center justify-content-center gap-2 shadow-sm"
-                            style={{ minWidth: "45px" }}
-                        >
-                            <i className="bi bi-plus-lg"></i>
- 
-                            {/* Texto solo en pantallas medianas o grandes */}
-                            <span className="d-none d-md-inline">
-                                Nuevo Empleado
-                            </span>
-                        </Button>
-                    </Col>
+
+                    <Button
+                        onClick={() => setMostrarModal(true)}
+                        variant="primary"
+                        className="d-flex align-items-center gap-2 shadow-sm"
+                    >
+
+                        <i className="bi bi-plus-lg"></i>
+
+                        <span className="d-none d-md-inline">
+                            Nuevo Empleado
+                        </span>
+
+                    </Button>
+
                 </Col>
+
             </Row>
 
-            {/* Tarjeta Principal */}
+            {/* CARD */}
             <Card className="shadow border-0 rounded-4">
+
                 <Card.Body className="p-4 p-lg-5">
-                    {/* Barra superior: Búsqueda + Contador */}
+
+                    {/* BÚSQUEDA */}
                     <Row className="mb-4 align-items-center">
+
                         <Col md={7}>
+
                             <Form.Control
                                 type="text"
                                 placeholder="Buscar por nombre o cédula..."
                                 value={busqueda}
-                                onChange={(e) => setBusqueda(e.target.value)}
-                                className="py-2"
+                                onChange={(e) =>
+                                    setBusqueda(e.target.value)
+                                }
                             />
+
                         </Col>
-                        <Col md={5} className="text-md-end mt-3 mt-md-0">
-                            <Badge bg="primary" pill className="fs-6 px-3 py-2">
+
+                        <Col
+                            md={5}
+                            className="text-md-end mt-3 mt-md-0"
+                        >
+
+                            <Badge
+                                bg="primary"
+                                pill
+                                className="fs-6 px-3 py-2"
+                            >
                                 {empleadosFiltrados.length} empleados
                             </Badge>
+
                         </Col>
+
                     </Row>
 
-                    {/* Spinner de carga */}
+                    {/* LOADING */}
                     {cargando && (
+
                         <div className="text-center py-5">
-                            <Spinner animation="border" variant="primary" size="lg" />
-                            <p className="mt-3 text-muted">Cargando empleados...</p>
+
+                            <Spinner
+                                animation="border"
+                                variant="primary"
+                            />
+
+                            <p className="mt-3 text-muted">
+                                Cargando empleados...
+                            </p>
+
                         </div>
                     )}
 
-                    {/* Tabla de empleados */}
+                    {/* CONTENIDO */}
                     {!cargando && (
+
                         <Row>
 
-    {/* 📱 TARJETAS (MÓVIL) */}
-    <Col xs={12} className="d-lg-none">
-        {!cargando && (
-            <TarjetaEmpleado
-                empleados={empleadosFiltrados}
-                abrirModalEdicion={abrirModalEdicion}
-                abrirModalEliminacion={abrirModalEliminacion}
-            />
-        )}
-    </Col>
+                            {/* MOBILE */}
+                            <Col
+                                xs={12}
+                                className="d-lg-none"
+                            >
 
-    {/* 💻 TABLA (ESCRITORIO) */}
-    <Col xs={12} className="d-none d-lg-block">
-        {!cargando && (
-            <TablaEmpleados
-                empleados={empleadosFiltrados}
-                abrirModalEdicion={abrirModalEdicion}
-                abrirModalEliminacion={abrirModalEliminacion}
-            />
-        )}
-    </Col>
+                                <TarjetaEmpleado
+                                    empleados={empleadosFiltrados}
+                                    abrirModalEdicion={abrirModalEdicion}
+                                    abrirModalEliminacion={abrirModalEliminacion}
+                                />
 
-</Row>
+                            </Col>
+
+                            {/* DESKTOP */}
+                            <Col
+                                xs={12}
+                                className="d-none d-lg-block"
+                            >
+
+                                <TablaEmpleados
+                                    empleados={empleadosFiltrados}
+                                    abrirModalEdicion={abrirModalEdicion}
+                                    abrirModalEliminacion={abrirModalEliminacion}
+                                />
+
+                            </Col>
+
+                        </Row>
                     )}
+
                 </Card.Body>
+
             </Card>
 
-            {/* Modal de Registro de Empleado */}
+            {/* MODAL REGISTRO */}
             <ModalRegistroEmpleado
                 mostrarModal={mostrarModal}
                 setMostrarModal={setMostrarModal}
                 nuevoEmpleado={nuevoEmpleado}
+                setNuevoEmpleado={setNuevoEmpleado}
                 manejoCambioInput={manejoCambioInput}
                 agregarEmpleado={agregarEmpleado}
             />
 
+            {/* MODAL EDICIÓN */}
+            <ModalEdicionEmpleado
+                mostrarModalEdicion={mostrarModalEdicion}
+                setMostrarModalEdicion={setMostrarModalEdicion}
+                empleadoEditar={empleadoEditar}
+                setEmpleadoEditar={setEmpleadoEditar}
+                manejoCambioInputEdicion={manejoCambioInputEdicion}
+                actualizarEmpleado={actualizarEmpleado}
+            />
+
+            {/* MODAL ELIMINAR */}
             <ModalEliminacionEmpleado
                 mostrarModalEliminacion={mostrarModalEliminacion}
                 setMostrarModalEliminacion={setMostrarModalEliminacion}
@@ -368,21 +581,19 @@ const Empleados = () => {
                 empleado={empleadoAEliminar}
             />
 
-            <ModalEdicionEmpleado
-                mostrarModalEdicion={mostrarModalEdicion}
-                setMostrarModalEdicion={setMostrarModalEdicion}
-                empleadoEditar={empleadoEditar}
-                manejoCambioInputEdicion={manejoCambioInputEdicion}
-                actualizarEmpleado={actualizarEmpleado}
-            />
-
-            {/* Notificación */}
+            {/* TOAST */}
             <NotificacionOperacion
                 mostrar={toast.mostrar}
                 mensaje={toast.mensaje}
                 tipo={toast.tipo}
-                onCerrar={() => setToast({ ...toast, mostrar: false })}
+                onCerrar={() =>
+                    setToast({
+                        ...toast,
+                        mostrar: false,
+                    })
+                }
             />
+
         </Container>
     );
 };

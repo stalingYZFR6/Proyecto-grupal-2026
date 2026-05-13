@@ -6,7 +6,7 @@ import Inicio from "./views/Inicio";
 import Empleados from './views/Empleado';
 import Incidencias from './views/Incidencias';
 import Catalogo from "./views/Catalogo";
-import Asistencias from './views/Asistencias';
+import Asistencias from "./views/RegistroAsistencia.jsx";
 import Turnos from './views/Turnos';
 import Login from "./views/Login";
 import RutaProtegida from "./components/rutas/RutaProtegida";

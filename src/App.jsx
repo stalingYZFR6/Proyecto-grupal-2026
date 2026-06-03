@@ -11,6 +11,7 @@ import Turnos from './views/Turnos';
 import Login from "./views/Login";
 import RutaProtegida from "./components/rutas/RutaProtegida";
 import Pagina404 from "./views/Pagina404";
+import Dashboard from './views/Dashboard.jsx';
 
 const App = () => {
   return (
@@ -24,6 +25,7 @@ const App = () => {
 
           {/* Protegidas */}
           <Route path="/" element={<RutaProtegida><Inicio /></RutaProtegida>} />
+          <Route path="/dashboard" element={<RutaProtegida><Dashboard/></RutaProtegida>} />
           <Route path="/empleados" element={<RutaProtegida><Empleados /></RutaProtegida>} />
           <Route path="/incidencias" element={<RutaProtegida><Incidencias /></RutaProtegida>} />
           <Route path="/catalogo" element={<RutaProtegida><Catalogo /></RutaProtegida>} />

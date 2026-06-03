@@ -4,13 +4,14 @@ import { Container, Nav, Navbar, Offcanvas } from "react-bootstrap";
 import logo from "../../assets/logo.jpg";
 import { supabase } from "../../database/supabaseconfig";
 import "bootstrap-icons/font/bootstrap-icons.css";
+import ChatIA from "../ia/ChatIA";
 
 import MascotaChibi from "../MascotaChibi";
 
 const NavbarModaExpress = () => {
     const [isDarkMode, setIsDarkMode] = useState(true);
     const [mostrarMenu, setMostrarMenu] = useState(false); // 🔥 control del offcanvas
-
+    const [mostrarChatIA, setMostrarChatIA] = useState(false);// IA
     const navigate = useNavigate();
     const NOMBRE_MARCA = "Assis Tech";
 
@@ -60,6 +61,7 @@ const NavbarModaExpress = () => {
 
     const rutas = [
         { path: "/", label: "Inicio", icon: "bi-house-door" },
+        { path: "/dashboard", label: "Dashboard", icon: "bi-speedometer2" },
         { path: "/empleados", label: "Empleados", icon: "bi-people" },
         { path: "/incidencias", label: "Incidencias", icon: "bi-exclamation-triangle" },
         {path: "/asistencias",label: "Asistencias",icon: "bi-calendar-check"},
@@ -106,45 +108,60 @@ const NavbarModaExpress = () => {
 
                     {/* 🔥 BARRA NORMAL */}
                     <Navbar.Collapse className="d-none d-sm-flex">
-                        <Nav className="ms-auto align-items-center gap-4">
+    <Nav className="ms-auto align-items-center">
 
-                            {rutas.map((item) => (
-                                <Nav.Link
-                                    key={item.path}
-                                    onClick={() => manejarNavegacion(item.path)}
-                                >
-                                    <i className={`bi ${item.icon} fs-5`}></i>
-                                    <span className="ms-2 d-none d-lg-inline">
-                                        {item.label}
-                                    </span>
-                                </Nav.Link>
-                            ))}
+        {/* Menú principal */}
+        <div className="d-flex align-items-center">
 
-                            {/* DARK MODE */}
-                            <Nav.Link onClick={toggleDarkMode}>
-                                <i
-                                    className={`bi ${
-                                        isDarkMode ? "bi-sun" : "bi-moon"
-                                    } fs-5`}
-                                ></i>
-                                <span className="ms-2 d-none d-lg-inline">
-                                    {isDarkMode ? "Claro" : "Oscuro"}
-                                </span>
-                            </Nav.Link>
+            {rutas.map((item) => (
+                <Nav.Link
+                    key={item.path}
+                    onClick={() => manejarNavegacion(item.path)}
+                >
+                    {item.label}
+                </Nav.Link>
+            ))}
 
-                            {/* LOGOUT */}
-                            <Nav.Link
-                                onClick={cerrarSesion}
-                                className="text-danger"
-                            >
-                                <i className="bi bi-box-arrow-right fs-5"></i>
-                                <span className="ms-2 d-none d-lg-inline">
-                                    Salir
-                                </span>
-                            </Nav.Link>
+            {/* Chat IA */}
+            <Nav.Link
+                onClick={() => setMostrarChatIA(true)}
+                className="ms-3"
+                title="Asistente IA"
+            >
+                <i className="bi bi-robot"></i>
+            </Nav.Link>
 
-                        </Nav>
-                    </Navbar.Collapse>
+        </div>
+
+        <div className="vr mx-3"></div>
+
+        {/* Opciones */}
+        <div className="d-flex align-items-center">
+
+            <Nav.Link
+                onClick={toggleDarkMode}
+                title={isDarkMode ? "Modo claro" : "Modo oscuro"}
+            >
+                <i
+                    className={`bi ${
+                        isDarkMode
+                            ? "bi-sun-fill"
+                            : "bi-moon-fill"
+                    }`}
+                ></i>
+            </Nav.Link>
+
+            <Nav.Link
+                onClick={cerrarSesion}
+                className="ms-2"
+            >
+                Salir
+            </Nav.Link>
+
+        </div>
+
+    </Nav>
+</Navbar.Collapse>
 
                     {/* 🔥 OFFCANVAS CONTROLADO */}
                     <Navbar.Offcanvas
@@ -188,6 +205,8 @@ const NavbarModaExpress = () => {
                                         : "Modo Oscuro"}
                                 </Nav.Link>
 
+                                
+
                                 <Nav.Link
                                     onClick={cerrarSesion}
                                     className="text-danger mt-3"
@@ -202,6 +221,11 @@ const NavbarModaExpress = () => {
 
                 </Container>
             </Navbar>
+            {/* Chat IA */}
+        <ChatIA
+            mostrar={mostrarChatIA}
+            onCerrar={() => setMostrarChatIA(false)}
+        />
         </>
     );
 };

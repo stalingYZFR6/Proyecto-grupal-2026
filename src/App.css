@@ -3,9 +3,19 @@
     padding: 20px;
 }
 
-.color-navbar {
-    background-color: #8B6F47 !important;
-    background-image: linear-gradient(90deg, #121b96 0%, #2077c9 50%, #396cdb 100% );
+.navbar .nav-link {
+    font-weight: 500;
+    transition: all .2s ease;
+}
+
+.navbar .nav-link:hover {
+    opacity: .7;
+}
+
+.navbar .bi-robot,
+.navbar .bi-sun-fill,
+.navbar .bi-moon-fill {
+    font-size: 1.1rem;
 }
 
 .color-texto-marca {
@@ -29,7 +39,7 @@
 /* IMAGEN */
 .chibi {
     position: absolute;
-    width: 60px;
+    width: 70px;
     cursor: pointer;
     pointer-events: auto; /* ahora SÍ recibe clicks */
     animation: caminar 12s linear infinite;

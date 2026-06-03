@@ -1,16 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-    Container,
-    Row,
-    Col,
-    Card,
-    Button,
-    Table,
-    Spinner,
-    Form,
-    InputGroup,
-    Pagination
-} from "react-bootstrap";
+import {Container,Row,Col,Card,Button,Table,Spinner,Form,Badge,Pagination} from "react-bootstrap";
 
 import { supabase } from "../database/supabaseconfig";
 import ModalRegistroTurno from "../components/turnos/ModalRegistroTurnos";
@@ -67,7 +56,7 @@ const Turnos = () => {
 
     // LÓGICA DE FILTRADO Y PAGINACIÓN
     const turnosFiltrados = turnos.filter((turno) =>
-        turno.tipo_turno.toLowerCase().includes(busqueda.toLowerCase())
+        turno.tipo_turno?.toLowerCase().includes(busqueda.toLowerCase())
     );
 
     const indiceUltimoTurno = paginaActual * turnosPorPagina;
@@ -76,93 +65,131 @@ const Turnos = () => {
     const totalPaginas = Math.ceil(turnosFiltrados.length / turnosPorPagina);
 
     return (
-        <Container fluid className="py-4 bg-dark-page" style={{ minHeight: "100vh" }}>
+        <Container fluid className="py-4 px-3 px-md-4">
             <style>
                 {`
-                .bg-dark-page { background-color: #1a1d21; }
-                .card-custom { background-color: #212529; border: 1px solid #2d3136; border-radius: 10px; }
-                .table-custom { color: #dee2e6; }
-                .search-input { background-color: #2d3136 !important; border: 1px solid #3d4248 !important; color: white !important; }
-                .search-input::placeholder { color: #6c757d; }
-                
-                /* Botones personalizados */
+                /* Botones de acción dinámicos */
                 .btn-edit-custom, .btn-delete-custom {
-                    width: 40px; height: 40px; display: inline-flex; align-items: center;
-                    justify-content: center; background: transparent; border-radius: 8px; margin: 0 5px; transition: all 0.2s;
+                    width: 38px; 
+                    height: 38px; 
+                    display: inline-flex; 
+                    align-items: center;
+                    justify-content: center; 
+                    border-radius: 6px; 
+                    margin: 0 4px; 
                 }
-                .btn-edit-custom { border: 2px solid #ffc107 !important; color: #ffc107 !important; }
-                .btn-delete-custom { border: 2px solid #ff4d4d !important; color: #ff4d4d !important; }
-                .btn-edit-custom:hover { background: rgba(255, 193, 7, 0.1); transform: scale(1.05); }
-                .btn-delete-custom:hover { background: rgba(255, 77, 77, 0.1); transform: scale(1.05); }
+                .btn-edit-custom { border: 1px solid #ffc107 !important; color: #ffc107 !important; }
+                .btn-delete-custom { border: 1px solid #dc3545 !important; color: #dc3545 !important; }
+                
+                /* Efecto Hover sutil que se adapta al fondo */
+                .btn-edit-custom:hover { background: rgba(255, 193, 7, 0.15) !important; transform: scale(1.05); }
+                .btn-delete-custom:hover { background: rgba(220, 53, 69, 0.15) !important; transform: scale(1.05); }
 
-                /* Estilo Paginación */
-                .pagination .page-link { background-color: #212529; border-color: #3d4248; color: #ffc107; }
-                .pagination .page-item.active .page-link { background-color: #ffc107; border-color: #ffc107; color: #212529; }
-                .pagination .page-item.disabled .page-link { background-color: #1a1d21; border-color: #2d3136; color: #495057; }
+                /* Forzar el encabezado oscuro clásico de la segunda imagen */
+                .tabla-incidencias-style thead th {
+                    background-color: #212529 !important;
+                    color: #ffffff !important;
+                    font-weight: 600;
+                    border-bottom: none;
+                }
                 `}
             </style>
 
-            <Row className="mb-3 align-items-center">
+            {/* HEADER */}
+            <Row className="align-items-center mb-4">
                 <Col>
-                    <h2 className="fw-bold text-white mb-0">Gestión de Turnos</h2>
+                    <div className="d-flex align-items-center gap-3">
+                        <i className="bi bi-calendar-range-fill fs-1 text-primary"></i>
+                        <div>
+                            <h2 className="mb-1 fw-bold">Gestión de Turnos</h2>
+                            <p className="text-muted mb-0">
+                                Administra los horarios y jornadas laborales
+                            </p>
+                        </div>
+                    </div>
                 </Col>
-                <Col xs="auto" className="text-end">
-                    <Button variant="success" onClick={() => setMostrarModalRegistro(true)}>
-                        <i className="bi bi-plus-lg me-2"></i> Nuevo Turno
+                <Col xs="auto">
+                    <Button
+                        onClick={() => setMostrarModalRegistro(true)}
+                        variant="primary"
+                        className="d-flex align-items-center gap-2 shadow-sm"
+                    >
+                        <i className="bi bi-plus-lg"></i>
+                        <span className="d-none d-md-inline">Nuevo Turno</span>
                     </Button>
                 </Col>
             </Row>
 
-            {/* FILA 2: Barra de Búsqueda (Sola abajo) */}
-            <Row className="mb-4">
-                <Col md={6} lg={4}> {/* Ajusta el md={6} para que no sea tan ancha si prefieres */}
-                    <InputGroup>
-                        <InputGroup.Text className="search-input border-end-0">
-                            <i className="bi bi-search text-warning"></i>
-                        </InputGroup.Text>
-                        <Form.Control
-                            placeholder="Buscar turno por nombre..."
-                            className="search-input border-start-0"
-                            value={busqueda}
-                            onChange={(e) => {
-                                setBusqueda(e.target.value);
-                                setPaginaActual(1);
-                            }}
-                        />
-                    </InputGroup>
-                </Col>
-            </Row>
+            {/* CARD PRINCIPAL */}
+            <Card className="shadow border-0 rounded-4">
+                <Card.Body className="p-4 p-lg-5">
+                    
+                    {/* BUSCADOR */}
+                    <Row className="mb-4 align-items-center">
+                        <Col md={7}>
+                            <Form.Control
+                                type="text"
+                                placeholder="Buscar por tipo de turno..."
+                                value={busqueda}
+                                onChange={(e) => {
+                                    setBusqueda(e.target.value);
+                                    setPaginaActual(1);
+                                }}
+                            />
+                        </Col>
+                        <Col md={5} className="text-md-end mt-3 mt-md-0">
+                            <Badge
+                                bg="primary"
+                                pill
+                                className="fs-6 px-3 py-2"
+                            >
+                                {turnosFiltrados.length} turnos
+                            </Badge>
+                        </Col>
+                    </Row>
 
-            <Card className="card-custom shadow-sm">
-                <Card.Body>
-                    {loading ? (
-                        <div className="text-center py-5"><Spinner animation="border" variant="warning" /></div>
-                    ) : (
+                    {/* LOADING */}
+                    {loading && (
+                        <div className="text-center py-5">
+                            <Spinner animation="border" variant="primary" />
+                            <p className="mt-3 text-muted">Cargando turnos...</p>
+                        </div>
+                    )}
+
+                    {/* TABLA ESTILO INCIDENCIAS */}
+                    {!loading && (
                         <>
-                            <Table responsive borderless className="table-custom align-middle">
-                                <thead style={{ borderBottom: "1px solid #3d4248" }}>
+                            <Table 
+                                responsive 
+                                striped 
+                                bordered 
+                                hover 
+                                className="align-middle mb-0 tabla-incidencias-style"
+                            >
+                                <thead>
                                     <tr>
-                                        <th>#</th>
-                                        <th>Tipo Turno</th>
+                                        <th style={{ width: "70px" }}>ID</th>
+                                        <th>Tipo de Turno</th>
                                         <th>Hora Inicio</th>
                                         <th>Hora Final</th>
-                                        <th className="text-center">Acciones</th>
+                                        <th className="text-center" style={{ width: "140px" }}>Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {turnosPaginados.length > 0 ? (
                                         turnosPaginados.map((turno) => (
-                                            <tr key={turno.id_turno} style={{ borderBottom: "1px solid #2d3136" }}>
+                                            <tr key={turno.id_turno}>
                                                 <td>{turno.id_turno}</td>
-                                                <td className="fw-bold text-white">{turno.tipo_turno}</td>
+                                                <td className="fw-bold">{turno.tipo_turno}</td>
                                                 <td>{formatearHora(turno.hora_inicio)}</td>
                                                 <td>{formatearHora(turno.hora_fin)}</td>
                                                 <td className="text-center">
-                                                    <button className="btn-edit-custom" onClick={() => prepararEdicion(turno)}>
-                                                        <i className="bi bi-pencil"></i>
+                                                    {/* bg-body cambia automáticamente según el tema */}
+                                                    <button className="btn-edit-custom bg-body" onClick={() => prepararEdicion(turno)}>
+                                                        <i className="bi bi-pencil-fill"></i>
                                                     </button>
-                                                    <button className="btn-delete-custom" onClick={() => prepararEliminacion(turno)}>
-                                                        <i className="bi bi-trash"></i>
+                                                    <button className="btn-delete-custom bg-body" onClick={() => prepararEliminacion(turno)}>
+                                                        <i className="bi bi-trash-fill"></i>
                                                     </button>
                                                 </td>
                                             </tr>
@@ -177,9 +204,9 @@ const Turnos = () => {
                                 </tbody>
                             </Table>
 
-                            {/* CONTROLES DE PAGINACIÓN */}
+                            {/* PAGINACIÓN */}
                             {totalPaginas > 1 && (
-                                <div className="d-flex justify-content-between align-items-center mt-3">
+                                <div className="d-flex justify-content-between align-items-center mt-4">
                                     <small className="text-muted">
                                         Mostrando {turnosPaginados.length} de {turnosFiltrados.length} resultados
                                     </small>

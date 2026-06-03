@@ -411,63 +411,43 @@ const Empleados = () => {
     }, []);
 
     return (
+        
         <Container fluid className="py-4 px-3 px-md-4">
-
             {/* HEADER */}
             <Row className="align-items-center mb-4">
-
                 <Col>
-
                     <div className="d-flex align-items-center gap-3">
-
                         <i className="bi bi-people-fill fs-1 text-primary"></i>
-
                         <div>
-
                             <h2 className="mb-1 fw-bold">
                                 Gestión de Empleados
                             </h2>
-
                             <p className="text-muted mb-0">
                                 Administra el personal registrado
                             </p>
-
                         </div>
-
                     </div>
-
                 </Col>
-
                 <Col xs="auto">
-
                     <Button
                         onClick={() => setMostrarModal(true)}
                         variant="primary"
                         className="d-flex align-items-center gap-2 shadow-sm"
                     >
-
                         <i className="bi bi-plus-lg"></i>
-
                         <span className="d-none d-md-inline">
                             Nuevo Empleado
                         </span>
-
                     </Button>
-
                 </Col>
-
             </Row>
 
             {/* CARD */}
             <Card className="shadow border-0 rounded-4">
-
                 <Card.Body className="p-4 p-lg-5">
-
                     {/* BÚSQUEDA */}
                     <Row className="mb-4 align-items-center">
-
                         <Col md={7}>
-
                             <Form.Control
                                 type="text"
                                 placeholder="Buscar por nombre o cédula..."
@@ -478,12 +458,10 @@ const Empleados = () => {
                             />
 
                         </Col>
-
                         <Col
                             md={5}
                             className="text-md-end mt-3 mt-md-0"
                         >
-
                             <Badge
                                 bg="primary"
                                 pill
@@ -491,45 +469,35 @@ const Empleados = () => {
                             >
                                 {empleadosFiltrados.length} empleados
                             </Badge>
-
                         </Col>
-
                     </Row>
 
                     {/* LOADING */}
                     {cargando && (
-
                         <div className="text-center py-5">
-
                             <Spinner
                                 animation="border"
                                 variant="primary"
                             />
-
                             <p className="mt-3 text-muted">
                                 Cargando empleados...
                             </p>
-
                         </div>
                     )}
 
                     {/* CONTENIDO */}
                     {!cargando && (
-
                         <Row>
-
                             {/* MOBILE */}
                             <Col
                                 xs={12}
                                 className="d-lg-none"
                             >
-
                                 <TarjetaEmpleado
                                     empleados={empleadosFiltrados}
                                     abrirModalEdicion={abrirModalEdicion}
                                     abrirModalEliminacion={abrirModalEliminacion}
                                 />
-
                             </Col>
 
                             {/* DESKTOP */}
@@ -537,20 +505,15 @@ const Empleados = () => {
                                 xs={12}
                                 className="d-none d-lg-block"
                             >
-
                                 <TablaEmpleados
                                     empleados={empleadosFiltrados}
                                     abrirModalEdicion={abrirModalEdicion}
                                     abrirModalEliminacion={abrirModalEliminacion}
                                 />
-
                             </Col>
-
                         </Row>
                     )}
-
                 </Card.Body>
-
             </Card>
 
             {/* MODAL REGISTRO */}
@@ -562,7 +525,6 @@ const Empleados = () => {
                 manejoCambioInput={manejoCambioInput}
                 agregarEmpleado={agregarEmpleado}
             />
-
             {/* MODAL EDICIÓN */}
             <ModalEdicionEmpleado
                 mostrarModalEdicion={mostrarModalEdicion}
@@ -572,7 +534,6 @@ const Empleados = () => {
                 manejoCambioInputEdicion={manejoCambioInputEdicion}
                 actualizarEmpleado={actualizarEmpleado}
             />
-
             {/* MODAL ELIMINAR */}
             <ModalEliminacionEmpleado
                 mostrarModalEliminacion={mostrarModalEliminacion}

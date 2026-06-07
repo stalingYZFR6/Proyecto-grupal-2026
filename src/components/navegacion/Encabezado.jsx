@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Container, Nav, Navbar, Offcanvas } from "react-bootstrap";
+import { Container, Nav, Navbar } from "react-bootstrap";
 import logo from "../../assets/logo.jpg";
 import { supabase } from "../../database/supabaseconfig";
 import "bootstrap-icons/font/bootstrap-icons.css";
@@ -9,7 +9,6 @@ import MascotaChibi from "../MascotaChibi";
 
 const NavbarModaExpress = () => {
     const [isDarkMode, setIsDarkMode] = useState(true);
-    const [mostrarMenu, setMostrarMenu] = useState(false);
     const [mostrarChatIA, setMostrarChatIA] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
@@ -30,13 +29,11 @@ const NavbarModaExpress = () => {
     }, []);
 
     const manejarNavegacion = (ruta) => {
-        setMostrarMenu(false); // Cerrar menú primero
         navigate(ruta);
     };
 
     const cerrarSesion = async () => {
         try {
-            setMostrarMenu(false); // Cerrar menú primero
             await supabase.auth.signOut();
             localStorage.removeItem("usuario-supabase");
             navigate("/login");
@@ -61,75 +58,51 @@ const NavbarModaExpress = () => {
             <MascotaChibi />
             <Navbar expand="lg" fixed="top" className="glass-nav py-2" style={{ zIndex: 1030 }}>
                 <Container>
-                    <Navbar.Brand onClick={() => manejarNavegacion("/")} className="d-flex align-items-center gap-2 cursor-pointer">
+                    {/* Logo y Marca */}
+                    <Navbar.Brand 
+                        onClick={() => manejarNavegacion("/")} 
+                        className="d-flex align-items-center gap-2" 
+                        style={{ cursor: 'pointer' }}
+                    >
                         <img src={logo} alt="logo" width="36" height="36" className="rounded-circle border border-2 border-primary border-opacity-25" />
                         <span className="fw-bold fs-5 text-gradient" style={{ background: 'linear-gradient(45deg, var(--text-main), #38bdf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                             {NOMBRE_MARCA}
                         </span>
                     </Navbar.Brand>
 
-                    <div className="d-flex align-items-center gap-2 order-lg-last">
+                    {/* Navegación Central (Visible en pantallas grandes, scrollable en móviles) */}
+                    <div className="d-flex flex-grow-1 justify-content-center overflow-auto no-scrollbar mx-2">
+                        <Nav className="flex-row gap-1 flex-nowrap">
+                            {rutas.map((item) => (
+                                <Nav.Link 
+                                    key={item.path} 
+                                    onClick={() => manejarNavegacion(item.path)}
+                                    className={`px-3 py-2 rounded-pill small fw-medium transition-all d-flex align-items-center ${location.pathname === item.path ? 'bg-primary bg-opacity-10 text-primary' : 'text-muted hover:bg-light'}`}
+                                >
+                                    <i className={`bi ${item.icon} ${location.pathname === item.path ? '' : 'me-lg-2'}`}></i>
+                                    <span className="d-none d-lg-inline">{item.label}</span>
+                                </Nav.Link>
+                            ))}
+                        </Nav>
+                    </div>
+
+                    {/* Acciones Finales */}
+                    <div className="d-flex align-items-center gap-1 gap-md-2">
                         <Nav.Link onClick={() => setMostrarChatIA(true)} className="p-2 text-muted hover:text-primary transition-all">
                             <i className="bi bi-robot fs-5"></i>
                         </Nav.Link>
                         <Nav.Link onClick={toggleDarkMode} className="p-2 text-muted hover:text-primary transition-all">
                             <i className={`bi ${isDarkMode ? "bi-sun" : "bi-moon"} fs-5`}></i>
                         </Nav.Link>
-                        <Navbar.Toggle onClick={() => setMostrarMenu(true)} className="border-0 p-2 shadow-none" />
-                    </div>
-
-                    <Navbar.Collapse className="d-none d-lg-flex">
-                        <Nav className="mx-auto gap-1">
-                            {rutas.map((item) => (
-                                <Nav.Link 
-                                    key={item.path} 
-                                    onClick={() => manejarNavegacion(item.path)}
-                                    className={`px-3 py-2 rounded-pill small fw-medium transition-all ${location.pathname === item.path ? 'bg-primary bg-opacity-10 text-primary' : 'text-muted hover:bg-light'}`}
-                                >
-                                    <i className={`bi ${item.icon} me-2`}></i>
-                                    {item.label}
-                                </Nav.Link>
-                            ))}
-                        </Nav>
-                        <Nav.Link onClick={cerrarSesion} className="small fw-semibold text-danger opacity-75 hover:opacity-100 transition-all">
-                            Cerrar Sesión
+                        <div className="vr mx-2 d-none d-md-block" style={{ height: '24px', alignSelf: 'center' }}></div>
+                        <Nav.Link 
+                            onClick={cerrarSesion} 
+                            className="p-2 text-danger opacity-75 hover:opacity-100 transition-all d-flex align-items-center gap-2"
+                        >
+                            <i className="bi bi-box-arrow-right fs-5"></i>
+                            <span className="d-none d-xl-inline small fw-bold">Salir</span>
                         </Nav.Link>
-                    </Navbar.Collapse>
-
-                    <Navbar.Offcanvas 
-                        show={mostrarMenu} 
-                        onHide={() => setMostrarMenu(false)} 
-                        placement="end" 
-                        className="border-0"
-                        style={{ zIndex: 1050 }}
-                    >
-                        <Offcanvas.Header closeButton className="border-bottom">
-                            <Offcanvas.Title className="fw-bold">{NOMBRE_MARCA}</Offcanvas.Title>
-                        </Offcanvas.Header>
-                        <Offcanvas.Body className="p-4">
-                            <Nav className="flex-column gap-3">
-                                {rutas.map((item) => (
-                                    <Nav.Link 
-                                        key={item.path} 
-                                        onClick={() => manejarNavegacion(item.path)} 
-                                        className="d-flex align-items-center fs-6 fw-medium text-muted"
-                                    >
-                                        <div className="bg-light rounded-3 p-2 me-3 text-dark">
-                                            <i className={`bi ${item.icon}`}></i>
-                                        </div>
-                                        {item.label}
-                                    </Nav.Link>
-                                ))}
-                                <hr className="my-4 opacity-10" />
-                                <Nav.Link onClick={cerrarSesion} className="text-danger fw-bold d-flex align-items-center">
-                                    <div className="bg-danger bg-opacity-10 rounded-3 p-2 me-3 text-danger">
-                                        <i className="bi bi-box-arrow-right"></i>
-                                    </div>
-                                    Cerrar Sesión
-                                </Nav.Link>
-                            </Nav>
-                        </Offcanvas.Body>
-                    </Navbar.Offcanvas>
+                    </div>
                 </Container>
             </Navbar>
             <ChatIA mostrar={mostrarChatIA} onCerrar={() => setMostrarChatIA(false)} />

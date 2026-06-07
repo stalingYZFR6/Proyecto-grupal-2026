@@ -70,7 +70,7 @@ const TablaJornadas = () => {
                       {j.estado.toUpperCase()}
                     </Badge>
                   </div>
-                  <div className="bg-light rounded-3 p-3 mb-4 d-flex justify-content-between align-items-center">
+                  <div className="bg-premium-light rounded-3 p-3 mb-4 d-flex justify-content-between align-items-center">
                     <span className="small text-muted">Registros de asistencia:</span>
                     <span className="fw-bold fs-5">{j.total_marcas}</span>
                   </div>

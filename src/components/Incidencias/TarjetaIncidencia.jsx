@@ -20,7 +20,7 @@ const TarjetaIncidencia = ({ incidencia, abrirModalEdicion, abrirModalEliminacio
                         </Badge>
                         <h5 className="fw-bold mb-0">{incidencia.tipo_incidencia}</h5>
                     </div>
-                    <div className="bg-light p-2 rounded-3">
+                    <div className="bg-premium-light p-2 rounded-3">
                         <i className="bi bi-exclamation-circle text-muted"></i>
                     </div>
                 </div>
@@ -39,7 +39,7 @@ const TarjetaIncidencia = ({ incidencia, abrirModalEdicion, abrirModalEliminacio
                 <div className="d-flex gap-2 mt-auto">
                     <Button 
                         variant="link" 
-                        className="w-100 text-decoration-none text-muted hover:text-primary p-2 bg-light rounded-3 transition-all"
+                        className="w-100 text-decoration-none text-muted hover:text-primary p-2 bg-premium-light rounded-3 transition-all"
                         onClick={() => abrirModalEdicion(incidencia)}
                     >
                         <i className="bi bi-pencil-square me-2"></i>
@@ -47,7 +47,7 @@ const TarjetaIncidencia = ({ incidencia, abrirModalEdicion, abrirModalEliminacio
                     </Button>
                     <Button 
                         variant="link" 
-                        className="w-100 text-decoration-none text-muted hover:text-danger p-2 bg-light rounded-3 transition-all"
+                        className="w-100 text-decoration-none text-muted hover:text-danger p-2 bg-premium-light rounded-3 transition-all"
                         onClick={() => abrirModalEliminacion(incidencia)}
                     >
                         <i className="bi bi-trash3 me-2"></i>

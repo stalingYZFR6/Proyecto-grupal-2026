@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Container, Nav, Navbar } from "react-bootstrap";
 import logo from "../../assets/logo.jpg";
-import { supabase } from "../../database/supabaseconfig";
+import { cerrarSesion, esAdmin } from "../../utils/auth";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import ChatIA from "../ia/ChatIA";
 import MascotaChibi from "../MascotaChibi";
@@ -13,6 +13,7 @@ const NavbarModaExpress = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const NOMBRE_MARCA = "AssisTech";
+    const admin = esAdmin();
 
     const toggleDarkMode = () => {
         const newMode = !isDarkMode;
@@ -32,24 +33,28 @@ const NavbarModaExpress = () => {
         navigate(ruta);
     };
 
-    const cerrarSesion = async () => {
-        try {
-            await supabase.auth.signOut();
-            localStorage.removeItem("usuario-supabase");
-            navigate("/login");
-        } catch (err) {
-            console.error("Error cerrando sesión:", err.message);
-        }
+    const handleLogout = () => {
+        cerrarSesion(navigate);
     };
 
-    const rutas = [
+    // Definir rutas según rol
+    const rutasAdmin = [
         { path: "/", label: "Inicio", icon: "bi-grid-1x2" },
         { path: "/dashboard", label: "Estadísticas", icon: "bi-bar-chart" },
         { path: "/empleados", label: "Personal", icon: "bi-people" },
+        { path: "/usuarios", label: "Usuarios", icon: "bi-shield-lock" },
         { path: "/incidencias", label: "Incidencias", icon: "bi-exclamation-circle" },
         { path: "/asistencias", label: "Asistencia", icon: "bi-calendar-check" },
         { path: "/turnos", label: "Turnos", icon: "bi-clock" },
     ];
+
+    const rutasEmpleado = [
+        { path: "/", label: "Inicio", icon: "bi-grid-1x2" },
+        { path: "/perfil", label: "Mi Perfil", icon: "bi-person-circle" },
+        { path: "/asistencias", label: "Mis Asistencias", icon: "bi-calendar-check" },
+    ];
+
+    const rutas = admin ? rutasAdmin : rutasEmpleado;
 
     if (location.pathname === "/login") return null;
 
@@ -58,7 +63,6 @@ const NavbarModaExpress = () => {
             <MascotaChibi />
             <Navbar expand="lg" fixed="top" className="glass-nav py-2" style={{ zIndex: 1030 }}>
                 <Container>
-                    {/* Logo y Marca */}
                     <Navbar.Brand 
                         onClick={() => manejarNavegacion("/")} 
                         className="d-flex align-items-center gap-2" 
@@ -70,7 +74,6 @@ const NavbarModaExpress = () => {
                         </span>
                     </Navbar.Brand>
 
-                    {/* Navegación Central (Visible en pantallas grandes, scrollable en móviles) */}
                     <div className="d-flex flex-grow-1 justify-content-center overflow-auto no-scrollbar mx-2">
                         <Nav className="flex-row gap-1 flex-nowrap">
                             {rutas.map((item) => (
@@ -86,7 +89,6 @@ const NavbarModaExpress = () => {
                         </Nav>
                     </div>
 
-                    {/* Acciones Finales */}
                     <div className="d-flex align-items-center gap-1 gap-md-2">
                         <Nav.Link onClick={() => setMostrarChatIA(true)} className="p-2 text-muted hover:text-primary transition-all">
                             <i className="bi bi-robot fs-5"></i>
@@ -96,7 +98,7 @@ const NavbarModaExpress = () => {
                         </Nav.Link>
                         <div className="vr mx-2 d-none d-md-block" style={{ height: '24px', alignSelf: 'center' }}></div>
                         <Nav.Link 
-                            onClick={cerrarSesion} 
+                            onClick={handleLogout} 
                             className="p-2 text-danger opacity-75 hover:opacity-100 transition-all d-flex align-items-center gap-2"
                         >
                             <i className="bi bi-box-arrow-right fs-5"></i>

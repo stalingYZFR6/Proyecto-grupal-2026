@@ -70,9 +70,9 @@ const TablaJornadas = () => {
                       {j.estado.toUpperCase()}
                     </Badge>
                   </div>
-                  <div className="bg-light rounded-3 p-3 mb-4 d-flex justify-content-between align-items-center">
-                    <span className="small text-muted">Registros de asistencia:</span>
-                    <span className="fw-bold fs-5">{j.total_marcas}</span>
+                  <div className="bg-premium-light rounded-3 p-3 mb-4 d-flex justify-content-between align-items-center">
+                    <span className="small text-premium-muted">Registros de asistencia:</span>
+                    <span className="fw-bold fs-5 text-premium-main">{j.total_marcas}</span>
                   </div>
                   <div className="d-flex gap-2">
                     <Button variant="outline-primary" className="w-100 rounded-3 py-2 fw-bold border-2" onClick={() => { setJornadaSeleccionada(j); setShowDetalle(true); }}>

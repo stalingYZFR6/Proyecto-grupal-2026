@@ -22,6 +22,22 @@
   --glass-bg: rgba(15, 23, 42, 0.8);
 }
 
+/* Corrección de clases estáticas de Bootstrap para modo oscuro */
+[data-bs-theme='dark'] .bg-light,
+[data-bs-theme='dark'] .bg-body-tertiary {
+  background-color: var(--bg-light) !important;
+  color: var(--text-main) !important;
+}
+
+[data-bs-theme='dark'] .bg-white {
+  background-color: var(--bg-card) !important;
+  color: var(--text-main) !important;
+}
+
+[data-bs-theme='dark'] .text-muted {
+  color: var(--text-muted) !important;
+}
+
 body {
   font-family: 'Inter', sans-serif;
   background-color: var(--bg-main);

@@ -141,21 +141,21 @@ const Inicio = () => {
                     <Card className="premium-card border-0 p-4 h-100">
                         <h5 className="fw-bold mb-4">Distribución de Incidencias</h5>
                         <div className="d-flex flex-column gap-3">
-                            <div className="d-flex align-items-center justify-content-between p-3 bg-premium-light rounded-3">
+                            <div className="d-flex align-items-center justify-content-between p-3 bg-light rounded-3">
                                 <div className="d-flex align-items-center gap-3">
                                     <div className="bg-warning p-2 rounded-circle" style={{ width: '10px', height: '10px' }}></div>
                                     <span className="small fw-medium">Tardanzas</span>
                                 </div>
                                 <span className="fw-bold">{tardanzas}</span>
                             </div>
-                            <div className="d-flex align-items-center justify-content-between p-3 bg-premium-light rounded-3">
+                            <div className="d-flex align-items-center justify-content-between p-3 bg-light rounded-3">
                                 <div className="d-flex align-items-center gap-3">
                                     <div className="bg-danger p-2 rounded-circle" style={{ width: '10px', height: '10px' }}></div>
                                     <span className="small fw-medium">Ausencias</span>
                                 </div>
                                 <span className="fw-bold">{ausencias}</span>
                             </div>
-                            <div className="d-flex align-items-center justify-content-between p-3 bg-premium-light rounded-3">
+                            <div className="d-flex align-items-center justify-content-between p-3 bg-light rounded-3">
                                 <div className="d-flex align-items-center gap-3">
                                     <div className="bg-info p-2 rounded-circle" style={{ width: '10px', height: '10px' }}></div>
                                     <span className="small fw-medium">Permisos</span>

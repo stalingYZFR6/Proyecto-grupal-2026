@@ -4,9 +4,14 @@ import { supabase } from "../database/supabaseconfig";
 
 const Inicio = () => {
     const [loading, setLoading] = useState(true);
-    const [stats, setStats] = useState({
-        total: 0, incidencias: 0, asistencia: 0, tardanzas: 0, ausencias: 0, permisos: 0
-    });
+    const [totalEmpleados, setTotalEmpleados] = useState(0);
+    const [totalIncidencias, setTotalIncidencias] = useState(0);
+    const [porcentajeAsistencia, setPorcentajeAsistencia] = useState(0);
+    const [porcentajeTardanza, setPorcentajeTardanza] = useState(0);
+    const [porcentajeAusencias, setPorcentajeAusencias] = useState(0);
+    const [tardanzas, setTardanzas] = useState(0);
+    const [ausencias, setAusencias] = useState(0);
+    const [permisos, setPermisos] = useState(0);
 
     useEffect(() => {
         obtenerDashboard();
@@ -15,21 +20,28 @@ const Inicio = () => {
     const obtenerDashboard = async () => {
         setLoading(true);
         try {
-            const { count: empCount } = await supabase.from("empleado").select("*", { count: "exact", head: true });
-            const { count: incCount } = await supabase.from("Incidencias").select("*", { count: "exact", head: true });
-            const { data: asistData } = await supabase.from("asistencias").select("estado_asistencia");
+            const { count: empleadosCount } = await supabase.from("empleado").select("*", { count: "exact", head: true });
+            setTotalEmpleados(empleadosCount || 0);
 
-            const total = asistData?.length || 0;
-            const presentes = asistData?.filter(a => a.estado_asistencia === "Presente").length || 0;
-            
-            setStats({
-                total: empCount || 0,
-                incidencias: incCount || 0,
-                asistencia: total > 0 ? Math.round((presentes / total) * 100) : 0,
-                tardanzas: asistData?.filter(a => a.estado_asistencia === "Tardanza").length || 0,
-                ausencias: asistData?.filter(a => a.estado_asistencia === "Ausente").length || 0,
-                permisos: asistData?.filter(a => a.estado_asistencia === "Permiso").length || 0
-            });
+            const { count: incidenciasCount } = await supabase.from("Incidencias").select("*", { count: "exact", head: true });
+            setTotalIncidencias(incidenciasCount || 0);
+
+            const { data: asistenciasData, error } = await supabase.from("asistencias").select("estado_asistencia");
+            if (error) throw error;
+
+            const total = asistenciasData?.length || 0;
+            const presentes = asistenciasData.filter(a => a.estado_asistencia === "Presente").length;
+            const tardanzaCantidad = asistenciasData.filter(a => a.estado_asistencia === "Tardanza").length;
+            const ausenciaCantidad = asistenciasData.filter(a => a.estado_asistencia === "Ausente").length;
+            const permisosCantidad = asistenciasData.filter(a => a.estado_asistencia === "Permiso").length;
+
+            setTardanzas(tardanzaCantidad);
+            setAusencias(ausenciaCantidad);
+            setPermisos(permisosCantidad);
+
+            setPorcentajeAsistencia(total > 0 ? Math.round((presentes / total) * 100) : 0);
+            setPorcentajeTardanza(total > 0 ? Math.round((tardanzaCantidad / total) * 100) : 0);
+            setPorcentajeAusencias(total > 0 ? Math.round((ausenciaCantidad / total) * 100) : 0);
         } catch (err) {
             console.error(err);
         } finally {
@@ -37,121 +49,119 @@ const Inicio = () => {
         }
     };
 
-    if (loading) return <div className="text-center py-5"><Spinner animation="border" variant="primary" /></div>;
+    if (loading) {
+        return (
+            <div className="text-center py-5 mt-5">
+                <Spinner animation="border" variant="primary" />
+                <p className="mt-3 text-muted">Cargando panel de control...</p>
+            </div>
+        );
+    }
 
     return (
-        <Container fluid>
+        <Container className="py-5 mt-4">
+            {/* HEADER */}
             <div className="mb-5">
-                <h2 className="fw-bold text-dark mb-1">Resumen Ejecutivo</h2>
-                <p className="text-muted">Métricas clave del capital humano y rendimiento operativo.</p>
+                <h2 className="fw-bold mb-1">Panel de Control</h2>
+                <p className="text-muted">Resumen operativo y métricas de rendimiento del personal</p>
             </div>
 
+            {/* KPIs */}
             <Row className="g-4 mb-5">
-                <Col md={3}>
+                <Col md={4}>
                     <Card className="premium-card border-0 p-3">
-                        <Card.Body>
-                            <div className="d-flex justify-content-between align-items-center mb-3">
-                                <div className="bg-primary bg-opacity-10 p-3 rounded-4">
-                                    <i className="bi bi-people-fill fs-4 text-primary"></i>
-                                </div>
-                                <Badge bg="success" className="bg-opacity-10 text-success">+2.5%</Badge>
+                        <Card.Body className="d-flex align-items-center gap-4">
+                            <div className="bg-primary bg-opacity-10 p-3 rounded-4">
+                                <i className="bi bi-people-fill fs-2 text-primary"></i>
                             </div>
-                            <h3 className="fw-bold mb-1">{stats.total}</h3>
-                            <p className="text-muted small mb-0 fw-medium">Colaboradores Totales</p>
+                            <div>
+                                <p className="text-muted small fw-bold mb-0 text-uppercase">Total Empleados</p>
+                                <h2 className="fw-bold mb-0">{totalEmpleados}</h2>
+                            </div>
                         </Card.Body>
                     </Card>
                 </Col>
-                <Col md={3}>
+                <Col md={4}>
                     <Card className="premium-card border-0 p-3">
-                        <Card.Body>
-                            <div className="d-flex justify-content-between align-items-center mb-3">
-                                <div className="bg-info bg-opacity-10 p-3 rounded-4">
-                                    <i className="bi bi-calendar-check-fill fs-4 text-info"></i>
-                                </div>
-                                <Badge bg="info" className="bg-opacity-10 text-info">Hoy</Badge>
+                        <Card.Body className="d-flex align-items-center gap-4">
+                            <div className="bg-warning bg-opacity-10 p-3 rounded-4">
+                                <i className="bi bi-exclamation-triangle-fill fs-2 text-warning"></i>
                             </div>
-                            <h3 className="fw-bold mb-1">{stats.asistencia}%</h3>
-                            <p className="text-muted small mb-0 fw-medium">Tasa de Asistencia</p>
+                            <div>
+                                <p className="text-muted small fw-bold mb-0 text-uppercase">Incidencias</p>
+                                <h2 className="fw-bold mb-0">{totalIncidencias}</h2>
+                            </div>
                         </Card.Body>
                     </Card>
                 </Col>
-                <Col md={3}>
+                <Col md={4}>
                     <Card className="premium-card border-0 p-3">
-                        <Card.Body>
-                            <div className="d-flex justify-content-between align-items-center mb-3">
-                                <div className="bg-warning bg-opacity-10 p-3 rounded-4">
-                                    <i className="bi bi-exclamation-triangle-fill fs-4 text-warning"></i>
-                                </div>
-                                <Badge bg="warning" className="bg-opacity-10 text-warning">Pendientes</Badge>
+                        <Card.Body className="d-flex align-items-center gap-4">
+                            <div className="bg-success bg-opacity-10 p-3 rounded-4">
+                                <i className="bi bi-calendar-check-fill fs-2 text-success"></i>
                             </div>
-                            <h3 className="fw-bold mb-1">{stats.incidencias}</h3>
-                            <p className="text-muted small mb-0 fw-medium">Incidencias Activas</p>
-                        </Card.Body>
-                    </Card>
-                </Col>
-                <Col md={3}>
-                    <Card className="premium-card border-0 p-3">
-                        <Card.Body>
-                            <div className="d-flex justify-content-between align-items-center mb-3">
-                                <div className="bg-danger bg-opacity-10 p-3 rounded-4">
-                                    <i className="bi bi-person-x-fill fs-4 text-danger"></i>
-                                </div>
-                                <Badge bg="danger" className="bg-opacity-10 text-danger">Crítico</Badge>
+                            <div>
+                                <p className="text-muted small fw-bold mb-0 text-uppercase">Asistencia</p>
+                                <h2 className="fw-bold mb-0">{porcentajeAsistencia}%</h2>
                             </div>
-                            <h3 className="fw-bold mb-1">{stats.ausencias}</h3>
-                            <p className="text-muted small mb-0 fw-medium">Ausencias del Mes</p>
                         </Card.Body>
                     </Card>
                 </Col>
             </Row>
 
+            {/* GRÁFICOS Y DETALLES */}
             <Row className="g-4">
                 <Col lg={8}>
                     <Card className="premium-card border-0 p-4 h-100">
-                        <div className="d-flex justify-content-between align-items-center mb-4">
-                            <h5 className="fw-bold mb-0">Rendimiento de Asistencia</h5>
-                            <button className="btn btn-light btn-sm rounded-pill px-3">Ver Reporte</button>
+                        <h5 className="fw-bold mb-4">Rendimiento de Asistencia</h5>
+                        <div className="mb-4">
+                            <div className="d-flex justify-content-between mb-2">
+                                <span className="fw-medium">Asistencia General</span>
+                                <span className="fw-bold text-success">{porcentajeAsistencia}%</span>
+                            </div>
+                            <ProgressBar now={porcentajeAsistencia} variant="success" style={{ height: '8px' }} className="rounded-pill" />
                         </div>
                         <div className="mb-4">
                             <div className="d-flex justify-content-between mb-2">
-                                <span className="fw-medium small">Asistencia General</span>
-                                <span className="fw-bold text-success small">{stats.asistencia}%</span>
+                                <span className="fw-medium">Tardanzas</span>
+                                <span className="fw-bold text-warning">{porcentajeTardanza}%</span>
                             </div>
-                            <ProgressBar now={stats.asistencia} variant="success" style={{ height: '6px' }} className="rounded-pill" />
-                        </div>
-                        <div className="mb-4">
-                            <div className="d-flex justify-content-between mb-2">
-                                <span className="fw-medium small">Tardanzas</span>
-                                <span className="fw-bold text-warning small">12%</span>
-                            </div>
-                            <ProgressBar now={12} variant="warning" style={{ height: '6px' }} className="rounded-pill" />
+                            <ProgressBar now={porcentajeTardanza} variant="warning" style={{ height: '8px' }} className="rounded-pill" />
                         </div>
                         <div>
                             <div className="d-flex justify-content-between mb-2">
-                                <span className="fw-medium small">Ausencias</span>
-                                <span className="fw-bold text-danger small">5%</span>
+                                <span className="fw-medium">Ausencias</span>
+                                <span className="fw-bold text-danger">{porcentajeAusencias}%</span>
                             </div>
-                            <ProgressBar now={5} variant="danger" style={{ height: '6px' }} className="rounded-pill" />
+                            <ProgressBar now={porcentajeAusencias} variant="danger" style={{ height: '8px' }} className="rounded-pill" />
                         </div>
                     </Card>
                 </Col>
                 <Col lg={4}>
                     <Card className="premium-card border-0 p-4 h-100">
-                        <h5 className="fw-bold mb-4">Distribución de Novedades</h5>
+                        <h5 className="fw-bold mb-4">Distribución de Incidencias</h5>
                         <div className="d-flex flex-column gap-3">
-                            {[
-                                { label: 'Tardanzas', val: stats.tardanzas, color: 'warning' },
-                                { label: 'Ausencias', val: stats.ausencias, color: 'danger' },
-                                { label: 'Permisos', val: stats.permisos, color: 'info' }
-                            ].map((item, idx) => (
-                                <div key={idx} className="d-flex align-items-center justify-content-between p-3 bg-light rounded-4">
-                                    <div className="d-flex align-items-center gap-3">
-                                        <div className={`bg-${item.color} p-2 rounded-circle`} style={{ width: '10px', height: '10px' }}></div>
-                                        <span className="small fw-semibold">{item.label}</span>
-                                    </div>
-                                    <span className="fw-bold">{item.val}</span>
+                            <div className="d-flex align-items-center justify-content-between p-3 bg-premium-light rounded-3">
+                                <div className="d-flex align-items-center gap-3">
+                                    <div className="bg-warning p-2 rounded-circle" style={{ width: '10px', height: '10px' }}></div>
+                                    <span className="small fw-medium">Tardanzas</span>
                                 </div>
-                            ))}
+                                <span className="fw-bold">{tardanzas}</span>
+                            </div>
+                            <div className="d-flex align-items-center justify-content-between p-3 bg-premium-light rounded-3">
+                                <div className="d-flex align-items-center gap-3">
+                                    <div className="bg-danger p-2 rounded-circle" style={{ width: '10px', height: '10px' }}></div>
+                                    <span className="small fw-medium">Ausencias</span>
+                                </div>
+                                <span className="fw-bold">{ausencias}</span>
+                            </div>
+                            <div className="d-flex align-items-center justify-content-between p-3 bg-premium-light rounded-3">
+                                <div className="d-flex align-items-center gap-3">
+                                    <div className="bg-info p-2 rounded-circle" style={{ width: '10px', height: '10px' }}></div>
+                                    <span className="small fw-medium">Permisos</span>
+                                </div>
+                                <span className="fw-bold">{permisos}</span>
+                            </div>
                         </div>
                     </Card>
                 </Col>

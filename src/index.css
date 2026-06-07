@@ -1,103 +1,133 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
+  /* Palette Enterprise */
+  --primary: #2563eb;
+  --primary-dark: #1e40af;
+  --secondary: #06b6d4;
   --bg-main: #f8fafc;
+  --bg-sidebar: #1e293b;
   --bg-card: #ffffff;
-  --bg-light: #f1f5f9;
-  --text-main: #1e293b;
+  --text-main: #0f172a;
   --text-muted: #64748b;
-  --accent: #0f172a;
   --border-color: #e2e8f0;
-  --glass-bg: rgba(255, 255, 255, 0.7);
+  --sidebar-width: 260px;
+  --sidebar-collapsed-width: 80px;
 }
 
 [data-bs-theme='dark'] {
   --bg-main: #0f172a;
   --bg-card: #1e293b;
-  --bg-light: #334155;
   --text-main: #f1f5f9;
   --text-muted: #94a3b8;
-  --accent: #38bdf8;
   --border-color: #334155;
-  --glass-bg: rgba(15, 23, 42, 0.8);
-}
-
-/* Corrección de clases estáticas de Bootstrap para modo oscuro */
-[data-bs-theme='dark'] .bg-light,
-[data-bs-theme='dark'] .bg-body-tertiary {
-  background-color: var(--bg-light) !important;
-  color: var(--text-main) !important;
-}
-
-[data-bs-theme='dark'] .bg-white {
-  background-color: var(--bg-card) !important;
-  color: var(--text-main) !important;
-}
-
-[data-bs-theme='dark'] .text-muted {
-  color: var(--text-muted) !important;
 }
 
 body {
   font-family: 'Inter', sans-serif;
   background-color: var(--bg-main);
   color: var(--text-main);
-  transition: background-color 0.3s ease, color 0.3s ease;
-  letter-spacing: -0.01em;
+  transition: all 0.3s ease;
+  overflow-x: hidden;
 }
 
+/* Layout Enterprise */
+.app-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex-grow: 1;
+  padding: 2rem;
+  transition: all 0.3s ease;
+  margin-left: var(--sidebar-width);
+}
+
+@media (max-width: 992px) {
+  .main-content {
+    margin-left: 0;
+    padding: 1rem;
+    margin-top: 60px;
+  }
+}
+
+/* Premium Components */
 .premium-card {
   background: var(--bg-card) !important;
   border: 1px solid var(--border-color) !important;
-  color: var(--text-main) !important;
-  border-radius: 16px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.bg-premium-light {
-  background-color: var(--bg-light) !important;
-  color: var(--text-main) !important;
-}
-
-.text-premium-main {
-  color: var(--text-main) !important;
-}
-
-.text-premium-muted {
-  color: var(--text-muted) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05) !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
 }
 
 .premium-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.1) !important;
 }
 
-.glass-nav {
-  background: var(--glass-bg) !important;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border-color);
-}
-
-.btn-premium-primary {
-  background-color: var(--accent);
-  color: white !important;
+.btn-enterprise {
+  background: var(--primary);
+  color: white;
   border: none;
-  padding: 10px 24px;
+  padding: 0.75rem 1.5rem;
   border-radius: 10px;
   font-weight: 600;
+  transition: all 0.2s ease;
 }
 
-.search-input {
-  padding-left: 44px !important;
-  border-radius: 12px !important;
-  border: 1px solid var(--border-color) !important;
-  background: var(--bg-card) !important;
-  color: var(--text-main) !important;
-  height: 48px;
+.btn-enterprise:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
 }
 
-.search-input::placeholder {
-  color: var(--text-muted) !important;
+/* Sidebar Styles */
+.sidebar {
+  width: var(--sidebar-width);
+  background: var(--bg-sidebar);
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 1040;
+  color: white;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  padding: 0.8rem 1rem;
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  border-radius: 10px;
+  margin-bottom: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.sidebar-link:hover, .sidebar-link.active {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.sidebar-link i {
+  font-size: 1.2rem;
+  margin-right: 1rem;
+}
+
+/* Glassmorphism for Login */
+.glass-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 24px;
+}
+
+[data-bs-theme='dark'] .glass-card {
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }

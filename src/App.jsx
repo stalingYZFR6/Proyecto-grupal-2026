@@ -8,11 +8,8 @@ import Incidencias from './views/Incidencias';
 import Catalogo from "./views/Catalogo";
 import Asistencias from "./views/RegistroAsistencia.jsx";
 import Turnos from './views/Turnos';
-import Usuarios from './views/Usuarios';
-import MiPerfil from './views/MiPerfil';
 import Login from "./views/Login";
 import RutaProtegida from "./components/rutas/RutaProtegida";
-import RutaAdmin from "./components/rutas/RutaAdmin";
 import Pagina404 from "./views/Pagina404";
 import Dashboard from './views/Dashboard.jsx';
 
@@ -26,18 +23,14 @@ const App = () => {
           {/* Pública */}
           <Route path="/login" element={<Login />} />
 
-          {/* Protegidas (Cualquier rol activo) */}
+          {/* Protegidas */}
           <Route path="/" element={<RutaProtegida><Inicio /></RutaProtegida>} />
-          <Route path="/perfil" element={<RutaProtegida><MiPerfil /></RutaProtegida>} />
+          <Route path="/dashboard" element={<RutaProtegida><Dashboard/></RutaProtegida>} />
+          <Route path="/empleados" element={<RutaProtegida><Empleados /></RutaProtegida>} />
+          <Route path="/incidencias" element={<RutaProtegida><Incidencias /></RutaProtegida>} />
+          <Route path="/catalogo" element={<RutaProtegida><Catalogo /></RutaProtegida>} />
           <Route path="/asistencias" element={<RutaProtegida><Asistencias /></RutaProtegida>} />
-
-          {/* Administrativas (Solo Admin) */}
-          <Route path="/dashboard" element={<RutaAdmin><Dashboard/></RutaAdmin>} />
-          <Route path="/empleados" element={<RutaAdmin><Empleados /></RutaAdmin>} />
-          <Route path="/usuarios" element={<RutaAdmin><Usuarios /></RutaAdmin>} />
-          <Route path="/incidencias" element={<RutaAdmin><Incidencias /></RutaAdmin>} />
-          <Route path="/catalogo" element={<RutaAdmin><Catalogo /></RutaAdmin>} />
-          <Route path="/turnos" element={<RutaAdmin><Turnos /></RutaAdmin>} />
+          <Route path="/turnos" element={<RutaProtegida><Turnos /></RutaProtegida>} />
 
           {/* 404 */}
           <Route path="*" element={<Pagina404 />} />

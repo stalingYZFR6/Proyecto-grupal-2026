@@ -30,15 +30,15 @@ const NavbarModaExpress = () => {
     }, []);
 
     const manejarNavegacion = (ruta) => {
+        setMostrarMenu(false); // Cerrar menú primero
         navigate(ruta);
-        setMostrarMenu(false);
     };
 
     const cerrarSesion = async () => {
         try {
+            setMostrarMenu(false); // Cerrar menú primero
             await supabase.auth.signOut();
             localStorage.removeItem("usuario-supabase");
-            setMostrarMenu(false);
             navigate("/login");
         } catch (err) {
             console.error("Error cerrando sesión:", err.message);
@@ -59,7 +59,7 @@ const NavbarModaExpress = () => {
     return (
         <>
             <MascotaChibi />
-            <Navbar expand="lg" fixed="top" className="glass-nav py-2">
+            <Navbar expand="lg" fixed="top" className="glass-nav py-2" style={{ zIndex: 1030 }}>
                 <Container>
                     <Navbar.Brand onClick={() => manejarNavegacion("/")} className="d-flex align-items-center gap-2 cursor-pointer">
                         <img src={logo} alt="logo" width="36" height="36" className="rounded-circle border border-2 border-primary border-opacity-25" />
@@ -96,21 +96,35 @@ const NavbarModaExpress = () => {
                         </Nav.Link>
                     </Navbar.Collapse>
 
-                    <Navbar.Offcanvas show={mostrarMenu} onHide={() => setMostrarMenu(false)} placement="end" className="border-0">
+                    <Navbar.Offcanvas 
+                        show={mostrarMenu} 
+                        onHide={() => setMostrarMenu(false)} 
+                        placement="end" 
+                        className="border-0"
+                        style={{ zIndex: 1050 }}
+                    >
                         <Offcanvas.Header closeButton className="border-bottom">
                             <Offcanvas.Title className="fw-bold">{NOMBRE_MARCA}</Offcanvas.Title>
                         </Offcanvas.Header>
                         <Offcanvas.Body className="p-4">
                             <Nav className="flex-column gap-3">
                                 {rutas.map((item) => (
-                                    <Nav.Link key={item.path} onClick={() => manejarNavegacion(item.path)} className="d-flex align-items-center fs-6 fw-medium text-muted">
-                                        <div className="bg-light rounded-3 p-2 me-3"><i className={`bi ${item.icon}`}></i></div>
+                                    <Nav.Link 
+                                        key={item.path} 
+                                        onClick={() => manejarNavegacion(item.path)} 
+                                        className="d-flex align-items-center fs-6 fw-medium text-muted"
+                                    >
+                                        <div className="bg-light rounded-3 p-2 me-3 text-dark">
+                                            <i className={`bi ${item.icon}`}></i>
+                                        </div>
                                         {item.label}
                                     </Nav.Link>
                                 ))}
                                 <hr className="my-4 opacity-10" />
                                 <Nav.Link onClick={cerrarSesion} className="text-danger fw-bold d-flex align-items-center">
-                                    <div className="bg-danger bg-opacity-10 rounded-3 p-2 me-3"><i className="bi bi-box-arrow-right"></i></div>
+                                    <div className="bg-danger bg-opacity-10 rounded-3 p-2 me-3 text-danger">
+                                        <i className="bi bi-box-arrow-right"></i>
+                                    </div>
                                     Cerrar Sesión
                                 </Nav.Link>
                             </Nav>

@@ -22,22 +22,6 @@
   --glass-bg: rgba(15, 23, 42, 0.8);
 }
 
-/* Corrección de clases estáticas de Bootstrap para modo oscuro */
-[data-bs-theme='dark'] .bg-light,
-[data-bs-theme='dark'] .bg-body-tertiary {
-  background-color: var(--bg-light) !important;
-  color: var(--text-main) !important;
-}
-
-[data-bs-theme='dark'] .bg-white {
-  background-color: var(--bg-card) !important;
-  color: var(--text-main) !important;
-}
-
-[data-bs-theme='dark'] .text-muted {
-  color: var(--text-muted) !important;
-}
-
 body {
   font-family: 'Inter', sans-serif;
   background-color: var(--bg-main);
@@ -46,6 +30,7 @@ body {
   letter-spacing: -0.01em;
 }
 
+/* Componentes Premium */
 .premium-card {
   background: var(--bg-card) !important;
   border: 1px solid var(--border-color) !important;
@@ -53,19 +38,6 @@ body {
   border-radius: 16px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.bg-premium-light {
-  background-color: var(--bg-light) !important;
-  color: var(--text-main) !important;
-}
-
-.text-premium-main {
-  color: var(--text-main) !important;
-}
-
-.text-premium-muted {
-  color: var(--text-muted) !important;
 }
 
 .premium-card:hover {
@@ -87,6 +59,41 @@ body {
   padding: 10px 24px;
   border-radius: 10px;
   font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-premium-primary:hover {
+  opacity: 0.9;
+  transform: scale(1.02);
+}
+
+.text-gradient {
+  background: linear-gradient(45deg, #3b82f6, #2dd4bf);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Animaciones */
+.fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Buscador Estilo Linear */
+.search-container {
+  position: relative;
+}
+
+.search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
 }
 
 .search-input {
@@ -96,8 +103,4 @@ body {
   background: var(--bg-card) !important;
   color: var(--text-main) !important;
   height: 48px;
-}
-
-.search-input::placeholder {
-  color: var(--text-muted) !important;
 }

@@ -1,46 +1,34 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Container, Nav, Navbar, Offcanvas } from "react-bootstrap";
 import logo from "../../assets/logo.jpg";
 import { supabase } from "../../database/supabaseconfig";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import ChatIA from "../ia/ChatIA";
-
 import MascotaChibi from "../MascotaChibi";
 
 const NavbarModaExpress = () => {
     const [isDarkMode, setIsDarkMode] = useState(true);
-    const [mostrarMenu, setMostrarMenu] = useState(false); // 🔥 control del offcanvas
-    const [mostrarChatIA, setMostrarChatIA] = useState(false);// IA
+    const [mostrarMenu, setMostrarMenu] = useState(false);
+    const [mostrarChatIA, setMostrarChatIA] = useState(false);
     const navigate = useNavigate();
-    const NOMBRE_MARCA = "Assis Tech";
+    const location = useLocation();
+    const NOMBRE_MARCA = "AssisTech";
 
-    // ================= DARK MODE =================
     const toggleDarkMode = () => {
         const newMode = !isDarkMode;
         setIsDarkMode(newMode);
         localStorage.setItem("darkMode", newMode.toString());
-        document.documentElement.setAttribute(
-            "data-bs-theme",
-            newMode ? "dark" : "light"
-        );
+        document.documentElement.setAttribute("data-bs-theme", newMode ? "dark" : "light");
     };
 
     useEffect(() => {
         const savedMode = localStorage.getItem("darkMode");
-        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-
-        const shouldBeDark =
-            savedMode !== null ? savedMode === "true" : prefersDark;
-
+        const shouldBeDark = savedMode !== null ? savedMode === "true" : true;
         setIsDarkMode(shouldBeDark);
-        document.documentElement.setAttribute(
-            "data-bs-theme",
-            shouldBeDark ? "dark" : "light"
-        );
+        document.documentElement.setAttribute("data-bs-theme", shouldBeDark ? "dark" : "light");
     }, []);
 
-    // 🔥 ahora cierra el menú al navegar
     const manejarNavegacion = (ruta) => {
         navigate(ruta);
         setMostrarMenu(false);
@@ -48,11 +36,9 @@ const NavbarModaExpress = () => {
 
     const cerrarSesion = async () => {
         try {
-            const { error } = await supabase.auth.signOut();
-            if (error) throw error;
-
+            await supabase.auth.signOut();
             localStorage.removeItem("usuario-supabase");
-            setMostrarMenu(false); // 🔥 cerrar menú
+            setMostrarMenu(false);
             navigate("/login");
         } catch (err) {
             console.error("Error cerrando sesión:", err.message);
@@ -60,172 +46,79 @@ const NavbarModaExpress = () => {
     };
 
     const rutas = [
-        { path: "/", label: "Inicio", icon: "bi-house-door" },
-        { path: "/dashboard", label: "Dashboard", icon: "bi-speedometer2" },
-        { path: "/empleados", label: "Empleados", icon: "bi-people" },
-        { path: "/incidencias", label: "Incidencias", icon: "bi-exclamation-triangle" },
-        {path: "/asistencias",label: "Asistencias",icon: "bi-calendar-check"},
-        { path: "/turnos", label: "Turnos", icon: "bi-calendar-week" },
-        // { path: "/catalogo", label: "Catálogo", icon: "bi-images" },
+        { path: "/", label: "Inicio", icon: "bi-grid-1x2" },
+        { path: "/dashboard", label: "Estadísticas", icon: "bi-bar-chart" },
+        { path: "/empleados", label: "Personal", icon: "bi-people" },
+        { path: "/incidencias", label: "Incidencias", icon: "bi-exclamation-circle" },
+        { path: "/asistencias", label: "Asistencia", icon: "bi-calendar-check" },
+        { path: "/turnos", label: "Turnos", icon: "bi-clock" },
     ];
+
+    if (location.pathname === "/login") return null;
 
     return (
         <>
             <MascotaChibi />
-
-            <Navbar
-                expand="sm"
-                fixed="top"
-                bg="dark"
-                variant="dark"
-                className="shadow-lg"
-            >
+            <Navbar expand="lg" fixed="top" className="glass-nav py-2">
                 <Container>
-
-                    {/* LOGO */}
-                    <Navbar.Brand
-                        onClick={() => manejarNavegacion("/")}
-                        style={{ cursor: "pointer" }}
-                        className="d-flex align-items-center gap-2 text-white fw-bold"
-                    >
-                        <img
-                            src={logo}
-                            alt="logo"
-                            width="48"
-                            height="48"
-                            className="rounded-3"
-                        />
-                        <span className="d-none d-lg-inline">
+                    <Navbar.Brand onClick={() => manejarNavegacion("/")} className="d-flex align-items-center gap-2 cursor-pointer">
+                        <img src={logo} alt="logo" width="36" height="36" className="rounded-circle border border-2 border-primary border-opacity-25" />
+                        <span className="fw-bold fs-5 text-gradient" style={{ background: 'linear-gradient(45deg, var(--text-main), #38bdf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                             {NOMBRE_MARCA}
                         </span>
                     </Navbar.Brand>
 
-                    {/* 🔥 BOTÓN HAMBURGUESA CONTROLADO */}
-                    <Navbar.Toggle
-                        aria-controls="offcanvas-main"
-                        onClick={() => setMostrarMenu(true)}
-                    />
+                    <div className="d-flex align-items-center gap-2 order-lg-last">
+                        <Nav.Link onClick={() => setMostrarChatIA(true)} className="p-2 text-muted hover:text-primary transition-all">
+                            <i className="bi bi-robot fs-5"></i>
+                        </Nav.Link>
+                        <Nav.Link onClick={toggleDarkMode} className="p-2 text-muted hover:text-primary transition-all">
+                            <i className={`bi ${isDarkMode ? "bi-sun" : "bi-moon"} fs-5`}></i>
+                        </Nav.Link>
+                        <Navbar.Toggle onClick={() => setMostrarMenu(true)} className="border-0 p-2 shadow-none" />
+                    </div>
 
-                    {/* 🔥 BARRA NORMAL */}
-                    <Navbar.Collapse className="d-none d-sm-flex">
-    <Nav className="ms-auto align-items-center">
+                    <Navbar.Collapse className="d-none d-lg-flex">
+                        <Nav className="mx-auto gap-1">
+                            {rutas.map((item) => (
+                                <Nav.Link 
+                                    key={item.path} 
+                                    onClick={() => manejarNavegacion(item.path)}
+                                    className={`px-3 py-2 rounded-pill small fw-medium transition-all ${location.pathname === item.path ? 'bg-primary bg-opacity-10 text-primary' : 'text-muted hover:bg-light'}`}
+                                >
+                                    <i className={`bi ${item.icon} me-2`}></i>
+                                    {item.label}
+                                </Nav.Link>
+                            ))}
+                        </Nav>
+                        <Nav.Link onClick={cerrarSesion} className="small fw-semibold text-danger opacity-75 hover:opacity-100 transition-all">
+                            Cerrar Sesión
+                        </Nav.Link>
+                    </Navbar.Collapse>
 
-        {/* Menú principal */}
-        <div className="d-flex align-items-center">
-
-            {rutas.map((item) => (
-                <Nav.Link
-                    key={item.path}
-                    onClick={() => manejarNavegacion(item.path)}
-                >
-                    {item.label}
-                </Nav.Link>
-            ))}
-
-            {/* Chat IA */}
-            <Nav.Link
-                onClick={() => setMostrarChatIA(true)}
-                className="ms-3"
-                title="Asistente IA"
-            >
-                <i className="bi bi-robot"></i>
-            </Nav.Link>
-
-        </div>
-
-        <div className="vr mx-3"></div>
-
-        {/* Opciones */}
-        <div className="d-flex align-items-center">
-
-            <Nav.Link
-                onClick={toggleDarkMode}
-                title={isDarkMode ? "Modo claro" : "Modo oscuro"}
-            >
-                <i
-                    className={`bi ${
-                        isDarkMode
-                            ? "bi-sun-fill"
-                            : "bi-moon-fill"
-                    }`}
-                ></i>
-            </Nav.Link>
-
-            <Nav.Link
-                onClick={cerrarSesion}
-                className="ms-2"
-            >
-                Salir
-            </Nav.Link>
-
-        </div>
-
-    </Nav>
-</Navbar.Collapse>
-
-                    {/* 🔥 OFFCANVAS CONTROLADO */}
-                    <Navbar.Offcanvas
-                        id="offcanvas-main"
-                        placement="end"
-                        show={mostrarMenu}
-                        onHide={() => setMostrarMenu(false)}
-                        className="d-sm-none"
-                    >
-                        <Offcanvas.Header closeButton>
-                            <Offcanvas.Title>
-                                {NOMBRE_MARCA}
-                            </Offcanvas.Title>
+                    <Navbar.Offcanvas show={mostrarMenu} onHide={() => setMostrarMenu(false)} placement="end" className="border-0">
+                        <Offcanvas.Header closeButton className="border-bottom">
+                            <Offcanvas.Title className="fw-bold">{NOMBRE_MARCA}</Offcanvas.Title>
                         </Offcanvas.Header>
-
-                        <Offcanvas.Body>
-                            <Nav className="flex-column">
-
+                        <Offcanvas.Body className="p-4">
+                            <Nav className="flex-column gap-3">
                                 {rutas.map((item) => (
-                                    <Nav.Link
-                                        key={item.path}
-                                        onClick={() =>
-                                            manejarNavegacion(item.path)
-                                        }
-                                    >
-                                        <i
-                                            className={`bi ${item.icon} me-3`}
-                                        ></i>
+                                    <Nav.Link key={item.path} onClick={() => manejarNavegacion(item.path)} className="d-flex align-items-center fs-6 fw-medium text-muted">
+                                        <div className="bg-light rounded-3 p-2 me-3"><i className={`bi ${item.icon}`}></i></div>
                                         {item.label}
                                     </Nav.Link>
                                 ))}
-
-                                <Nav.Link onClick={toggleDarkMode}>
-                                    <i
-                                        className={`bi ${
-                                            isDarkMode ? "bi-sun" : "bi-moon"
-                                        } me-3`}
-                                    ></i>
-                                    {isDarkMode
-                                        ? "Modo Claro"
-                                        : "Modo Oscuro"}
+                                <hr className="my-4 opacity-10" />
+                                <Nav.Link onClick={cerrarSesion} className="text-danger fw-bold d-flex align-items-center">
+                                    <div className="bg-danger bg-opacity-10 rounded-3 p-2 me-3"><i className="bi bi-box-arrow-right"></i></div>
+                                    Cerrar Sesión
                                 </Nav.Link>
-
-                                
-
-                                <Nav.Link
-                                    onClick={cerrarSesion}
-                                    className="text-danger mt-3"
-                                >
-                                    <i className="bi bi-box-arrow-right me-3"></i>
-                                    Cerrar sesión
-                                </Nav.Link>
-
                             </Nav>
                         </Offcanvas.Body>
                     </Navbar.Offcanvas>
-
                 </Container>
             </Navbar>
-            {/* Chat IA */}
-        <ChatIA
-            mostrar={mostrarChatIA}
-            onCerrar={() => setMostrarChatIA(false)}
-        />
+            <ChatIA mostrar={mostrarChatIA} onCerrar={() => setMostrarChatIA(false)} />
         </>
     );
 };

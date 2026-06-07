@@ -59,14 +59,14 @@ const Login = () => {
                     </Col>
 
                     {/* Lado Derecho: Formulario */}
-                    <Col lg={5} xs={12} className="d-flex align-items-center justify-content-center bg-white dark:bg-slate-900">
+                    <Col lg={5} xs={12} className="d-flex align-items-center justify-content-center" style={{ background: "var(--bg-card)" }}>
                         <div className="w-100 px-4 px-md-5" style={{ maxWidth: "480px" }}>
                             <div className="text-center mb-5">
                                 <div className="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 rounded-4 p-3 mb-4">
                                     <i className="bi bi-shield-lock-fill text-primary fs-2"></i>
                                 </div>
-                                <h2 className="fw-bold text-slate-900">Bienvenido de nuevo</h2>
-                                <p className="text-muted">Ingresa tus credenciales para acceder al panel</p>
+                                <h2 className="fw-bold text-premium-main">Bienvenido de nuevo</h2>
+                                <p className="text-premium-muted">Ingresa tus credenciales para acceder al panel</p>
                             </div>
                             
                             <FormularioLogin
@@ -78,7 +78,7 @@ const Login = () => {
                                 iniciarSesion={iniciarSesion}
                             />
                             
-                            <p className="text-center mt-5 text-muted small">
+                            <p className="text-center mt-5 text-premium-muted small">
                                 &copy; 2026 AssisTech Enterprise. Todos los derechos reservados.
                             </p>
                         </div>

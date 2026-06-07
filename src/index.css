@@ -3,6 +3,7 @@
 :root {
   --bg-main: #f8fafc;
   --bg-card: #ffffff;
+  --bg-light: #f1f5f9;
   --text-main: #1e293b;
   --text-muted: #64748b;
   --accent: #0f172a;
@@ -13,6 +14,7 @@
 [data-bs-theme='dark'] {
   --bg-main: #0f172a;
   --bg-card: #1e293b;
+  --bg-light: #334155;
   --text-main: #f1f5f9;
   --text-muted: #94a3b8;
   --accent: #38bdf8;
@@ -24,21 +26,35 @@ body {
   font-family: 'Inter', sans-serif;
   background-color: var(--bg-main);
   color: var(--text-main);
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, color 0.3s ease;
   letter-spacing: -0.01em;
 }
 
 .premium-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-main) !important;
   border-radius: 16px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.bg-premium-light {
+  background-color: var(--bg-light) !important;
+  color: var(--text-main) !important;
+}
+
+.text-premium-main {
+  color: var(--text-main) !important;
+}
+
+.text-premium-muted {
+  color: var(--text-muted) !important;
 }
 
 .premium-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 }
 
 .glass-nav {
@@ -50,29 +66,11 @@ body {
 
 .btn-premium-primary {
   background-color: var(--accent);
-  color: white;
+  color: white !important;
   border: none;
   padding: 10px 24px;
   border-radius: 10px;
   font-weight: 600;
-  transition: all 0.2s ease;
-}
-
-.btn-premium-primary:hover {
-  opacity: 0.9;
-  transform: scale(1.02);
-}
-
-.search-container {
-  position: relative;
-}
-
-.search-icon {
-  position: absolute;
-  left: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-muted);
 }
 
 .search-input {
@@ -80,22 +78,10 @@ body {
   border-radius: 12px !important;
   border: 1px solid var(--border-color) !important;
   background: var(--bg-card) !important;
+  color: var(--text-main) !important;
   height: 48px;
 }
 
-.search-input:focus {
-  box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.1) !important;
-  border-color: var(--accent) !important;
-}
-
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-}
-::-webkit-scrollbar-track {
-  background: var(--bg-main);
-}
-::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border-radius: 10px;
+.search-input::placeholder {
+  color: var(--text-muted) !important;
 }

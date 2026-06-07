@@ -18,7 +18,7 @@ const TarjetaEmpleado = ({ empleados, abrirModalEdicion, abrirModalEliminacion }
                                         className="border border-3 border-white shadow-sm object-fit-cover"
                                     />
                                     <div>
-                                        <h5 className="fw-bold mb-0 text-truncate" style={{ maxWidth: '180px' }}>
+                                        <h5 className="fw-bold mb-0 text-truncate text-premium-main" style={{ maxWidth: '180px' }}>
                                             {emp.nombre} {emp.apellido}
                                         </h5>
                                         <Badge bg="primary" className="bg-opacity-10 text-primary border-0 rounded-pill px-2 py-1 small mt-1">
@@ -29,14 +29,14 @@ const TarjetaEmpleado = ({ empleados, abrirModalEdicion, abrirModalEliminacion }
                                 <div className="d-flex gap-1">
                                     <Button 
                                         variant="link" 
-                                        className="p-2 text-muted hover:text-warning transition-all"
+                                        className="p-2 text-premium-muted hover:text-warning transition-all"
                                         onClick={() => abrirModalEdicion(emp)}
                                     >
                                         <i className="bi bi-pencil-square fs-5"></i>
                                     </Button>
                                     <Button 
                                         variant="link" 
-                                        className="p-2 text-muted hover:text-danger transition-all"
+                                        className="p-2 text-premium-muted hover:text-danger transition-all"
                                         onClick={() => abrirModalEliminacion(emp)}
                                     >
                                         <i className="bi bi-trash3 fs-5"></i>
@@ -45,16 +45,16 @@ const TarjetaEmpleado = ({ empleados, abrirModalEdicion, abrirModalEliminacion }
                             </div>
 
                             <div className="space-y-3">
-                                <div className="d-flex align-items-center gap-3 text-muted mb-2">
-                                    <div className="bg-light rounded-3 p-2"><i className="bi bi-card-text"></i></div>
+                                <div className="d-flex align-items-center gap-3 text-premium-muted mb-2">
+                                    <div className="bg-premium-light rounded-3 p-2"><i className="bi bi-card-text"></i></div>
                                     <span className="small fw-medium">{emp.cedula}</span>
                                 </div>
-                                <div className="d-flex align-items-center gap-3 text-muted mb-2">
-                                    <div className="bg-light rounded-3 p-2"><i className="bi bi-envelope"></i></div>
+                                <div className="d-flex align-items-center gap-3 text-premium-muted mb-2">
+                                    <div className="bg-premium-light rounded-3 p-2"><i className="bi bi-envelope"></i></div>
                                     <span className="small text-truncate">{emp.correo || "Sin correo"}</span>
                                 </div>
-                                <div className="d-flex align-items-center gap-3 text-muted">
-                                    <div className="bg-light rounded-3 p-2"><i className="bi bi-telephone"></i></div>
+                                <div className="d-flex align-items-center gap-3 text-premium-muted">
+                                    <div className="bg-premium-light rounded-3 p-2"><i className="bi bi-telephone"></i></div>
                                     <span className="small">{emp.telefono || "Sin teléfono"}</span>
                                 </div>
                             </div>

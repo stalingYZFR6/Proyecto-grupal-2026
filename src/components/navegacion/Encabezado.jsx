@@ -46,6 +46,7 @@ const NavbarModaExpress = () => {
         { path: "/", label: "Inicio", icon: "bi-grid-1x2" },
         { path: "/dashboard", label: "Estadísticas", icon: "bi-bar-chart" },
         { path: "/empleados", label: "Personal", icon: "bi-people" },
+        { path: "/catalogo", label: "Catálogo", icon: "bi-journal-bookmark" },
         { path: "/incidencias", label: "Incidencias", icon: "bi-exclamation-circle" },
         { path: "/asistencias", label: "Asistencia", icon: "bi-calendar-check" },
         { path: "/turnos", label: "Turnos", icon: "bi-clock" },
@@ -70,7 +71,7 @@ const NavbarModaExpress = () => {
                         </span>
                     </Navbar.Brand>
 
-                    {/* Navegación Central (Visible en pantallas grandes, scrollable en móviles) */}
+                    {/* Navegación Central */}
                     <div className="d-flex flex-grow-1 justify-content-center overflow-auto no-scrollbar mx-2">
                         <Nav className="flex-row gap-1 flex-nowrap">
                             {rutas.map((item) => (

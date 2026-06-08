@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Form, Spinner, Badge, InputGroup } from "react-bootstrap";
+import { Container, Row, Col, Form, Spinner, Badge } from "react-bootstrap";
 import { supabase } from "../database/supabaseconfig";
-import TarjetaEmpleado from "../components/empleados/TarjetaEmpleado";
+import TarjetaCatalogo from "../components/empleados/TarjetaCatalogo";
 
 const Catalogo = () => {
     const [empleados, setEmpleados] = useState([]);
@@ -29,7 +29,6 @@ const Catalogo = () => {
         obtenerEmpleados();
     }, []);
 
-    // Filtrado en tiempo real
     const empleadosFiltrados = empleados.filter((emp) =>
         `${emp.nombre} ${emp.apellido}`.toLowerCase().includes(busqueda.toLowerCase()) ||
         emp.cedula.includes(busqueda)
@@ -37,7 +36,6 @@ const Catalogo = () => {
 
     return (
         <Container className="py-5 mt-4">
-            {/* Encabezado del Catálogo */}
             <div className="mb-5">
                 <Row className="align-items-center g-4">
                     <Col md={6}>
@@ -47,7 +45,7 @@ const Catalogo = () => {
                             </div>
                             <div>
                                 <h2 className="fw-bold mb-0">Catálogo de Personal</h2>
-                                <p className="text-muted mb-0">Directorio completo de colaboradores activos</p>
+                                <p className="text-muted mb-0">Directorio visual de todos los colaboradores</p>
                             </div>
                         </div>
                     </Col>
@@ -66,7 +64,6 @@ const Catalogo = () => {
                 </Row>
             </div>
 
-            {/* Estado de Carga */}
             {cargando ? (
                 <div className="text-center py-5">
                     <Spinner animation="border" variant="primary" />
@@ -74,26 +71,24 @@ const Catalogo = () => {
                 </div>
             ) : (
                 <>
-                    {/* Contador de Resultados */}
-                    <div className="mb-4 d-flex align-items-center gap-2">
-                        <Badge bg="primary" className="bg-opacity-10 text-primary border-0 rounded-pill px-3 py-2">
-                            {empleadosFiltrados.length} Colaboradores encontrados
+                    <div className="mb-4">
+                        <Badge bg="primary" className="bg-opacity-10 text-primary border-0 rounded-pill px-4 py-2 fs-6 fw-semibold">
+                            {empleadosFiltrados.length} Colaboradores Registrados
                         </Badge>
                     </div>
 
-                    {/* Grid de Tarjetas */}
                     {empleadosFiltrados.length > 0 ? (
-                        <TarjetaEmpleado 
-                            empleados={empleadosFiltrados} 
-                            // En el catálogo ocultamos las acciones de edición/borrado pasando funciones vacías o manejándolas internamente
-                            abrirModalEdicion={() => {}} 
-                            abrirModalEliminacion={() => {}}
-                        />
+                        <Row className="g-4">
+                            {empleadosFiltrados.map((emp) => (
+                                <Col key={emp.id_empleado} xs={12} sm={6} lg={4} xl={3}>
+                                    <TarjetaCatalogo empleado={emp} />
+                                </Col>
+                            ))}
+                        </Row>
                     ) : (
                         <div className="text-center py-5 bg-premium-light rounded-4 border border-dashed">
                             <i className="bi bi-person-x display-4 text-muted mb-3"></i>
                             <h5 className="text-muted">No se encontraron coincidencias</h5>
-                            <p className="small text-muted">Intenta con otro nombre o número de cédula</p>
                         </div>
                     )}
                 </>

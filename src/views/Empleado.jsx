@@ -39,41 +39,21 @@ const Empleados = () => {
 
     useEffect(() => { cargarEmpleados(); }, []);
 
-    // Convertir archivo a Base64 como alternativa segura
-    const convertirBase64 = (archivo) => {
-        return new Promise((resolve, reject) => {
-            const fileReader = new FileReader();
-            fileReader.readAsDataURL(archivo);
-            fileReader.onload = () => {
-                resolve(fileReader.result);
-            };
-            fileReader.onerror = (error) => {
-                reject(error);
-            };
-        });
-    };
-
-    // FUNCIÓN PARA SUBIR IMAGEN CON FALLBACK SEGURO
+    // FUNCIÓN PARA SUBIR IMAGEN
     const subirImagen = async (archivo) => {
         if (!archivo) return null;
-        try {
-            const nombreArchivo = `${Date.now()}_${archivo.name}`;
-            const { data, error } = await supabase.storage
-                .from("empleados")
-                .upload(nombreArchivo, archivo);
+        const nombreArchivo = `${Date.now()}_${archivo.name}`;
+        const { data, error } = await supabase.storage
+            .from("empleados")
+            .upload(nombreArchivo, archivo);
 
-            if (error) throw error;
+        if (error) throw error;
 
-            const { data: urlData } = supabase.storage
-                .from("empleados")
-                .getPublicUrl(nombreArchivo);
+        const { data: urlData } = supabase.storage
+            .from("empleados")
+            .getPublicUrl(nombreArchivo);
 
-            return urlData.publicUrl;
-        } catch (storageError) {
-            console.warn("Error en Supabase Storage, usando Base64 como alternativa:", storageError);
-            // Si falla el storage, convertimos a Base64 para que se guarde sí o sí
-            return await convertirBase64(archivo);
-        }
+        return urlData.publicUrl;
     };
 
     // AGREGAR EMPLEADO

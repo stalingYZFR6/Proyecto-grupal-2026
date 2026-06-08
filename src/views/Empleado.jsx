@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Button, Spinner, Badge, Form } from "react-bootstrap";
 import { supabase } from "../database/supabaseconfig";
+import Swal from "sweetalert2";
 
 import ModalEliminacionEmpleado from "../components/empleados/ModalEliminacionEmpleado";
 import ModalEdicionEmpleado from "../components/empleados/ModalEdicionEmpleado";
 import ModalRegistroEmpleado from "../components/empleados/ModalRegistroEmpleado";
 import TarjetaEmpleado from "../components/empleados/TarjetaEmpleado";
-import TablaEmpleados from "../components/empleados/TablaEmpleados";
 import NotificacionOperacion from "../components/NotificacionOperacion";
 
 const Empleados = () => {
@@ -38,6 +38,95 @@ const Empleados = () => {
     };
 
     useEffect(() => { cargarEmpleados(); }, []);
+
+    // FUNCIÓN PARA SUBIR IMAGEN
+    const subirImagen = async (archivo) => {
+        if (!archivo) return null;
+        const nombreArchivo = `${Date.now()}_${archivo.name}`;
+        const { data, error } = await supabase.storage
+            .from("empleados")
+            .upload(nombreArchivo, archivo);
+
+        if (error) throw error;
+
+        const { data: urlData } = supabase.storage
+            .from("empleados")
+            .getPublicUrl(nombreArchivo);
+
+        return urlData.publicUrl;
+    };
+
+    // AGREGAR EMPLEADO
+    const handleAgregarEmpleado = async () => {
+        try {
+            let urlImagen = "";
+            if (nuevoEmpleado.archivo_imagen) {
+                urlImagen = await subirImagen(nuevoEmpleado.archivo_imagen);
+            }
+
+            const { error } = await supabase.from("empleado").insert([{
+                nombre: nuevoEmpleado.nombre,
+                apellido: nuevoEmpleado.apellido,
+                cedula: nuevoEmpleado.cedula,
+                correo: nuevoEmpleado.correo,
+                telefono: nuevoEmpleado.telefono,
+                direccion: nuevoEmpleado.direccion,
+                url_imagen: urlImagen
+            }]);
+
+            if (error) throw error;
+
+            setToast({ mostrar: true, mensaje: "Empleado registrado con éxito", tipo: "exito" });
+            setMostrarModal(false);
+            setNuevoEmpleado({ nombre: "", apellido: "", cedula: "", correo: "", telefono: "", direccion: "", archivo_imagen: null, preview_imagen: "", url_imagen: "" });
+            cargarEmpleados();
+        } catch (err) {
+            setToast({ mostrar: true, mensaje: "Error: " + err.message, tipo: "error" });
+        }
+    };
+
+    // ACTUALIZAR EMPLEADO
+    const handleActualizarEmpleado = async () => {
+        try {
+            let urlImagen = empleadoEditar.url_imagen;
+            
+            if (empleadoEditar.archivo_imagen) {
+                urlImagen = await subirImagen(empleadoEditar.archivo_imagen);
+            }
+
+            const { error } = await supabase.from("empleado").update({
+                nombre: empleadoEditar.nombre,
+                apellido: empleadoEditar.apellido,
+                cedula: empleadoEditar.cedula,
+                correo: empleadoEditar.correo,
+                telefono: empleadoEditar.telefono,
+                direccion: empleadoEditar.direccion,
+                url_imagen: urlImagen
+            }).eq("id_empleado", empleadoEditar.id_empleado);
+
+            if (error) throw error;
+
+            setToast({ mostrar: true, mensaje: "Empleado actualizado con éxito", tipo: "exito" });
+            setMostrarModalEdicion(false);
+            cargarEmpleados();
+        } catch (err) {
+            setToast({ mostrar: true, mensaje: "Error: " + err.message, tipo: "error" });
+        }
+    };
+
+    // ELIMINAR EMPLEADO
+    const handleEliminarEmpleado = async () => {
+        try {
+            const { error } = await supabase.from("empleado").delete().eq("id_empleado", empleadoAEliminar.id_empleado);
+            if (error) throw error;
+
+            setToast({ mostrar: true, mensaje: "Empleado eliminado", tipo: "exito" });
+            setMostrarModalEliminacion(false);
+            cargarEmpleados();
+        } catch (err) {
+            setToast({ mostrar: true, mensaje: "Error al eliminar", tipo: "error" });
+        }
+    };
 
     const empleadosFiltrados = empleados.filter((emp) =>
         `${emp.nombre} ${emp.apellido}`.toLowerCase().includes(busqueda.toLowerCase()) ||
@@ -105,9 +194,31 @@ const Empleados = () => {
                 </div>
             )}
 
-            <ModalRegistroEmpleado mostrarModal={mostrarModal} setMostrarModal={setMostrarModal} nuevoEmpleado={nuevoEmpleado} setNuevoEmpleado={setNuevoEmpleado} manejoCambioInput={(e) => setNuevoEmpleado({...nuevoEmpleado, [e.target.name]: e.target.value})} agregarEmpleado={cargarEmpleados} />
-            <ModalEdicionEmpleado mostrarModalEdicion={mostrarModalEdicion} setMostrarModalEdicion={setMostrarModalEdicion} empleadoEditar={empleadoEditar} setEmpleadoEditar={setEmpleadoEditar} manejoCambioInputEdicion={(e) => setEmpleadoEditar({...empleadoEditar, [e.target.name]: e.target.value})} actualizarEmpleado={cargarEmpleados} />
-            <ModalEliminacionEmpleado mostrarModalEliminacion={mostrarModalEliminacion} setMostrarModalEliminacion={setMostrarModalEliminacion} eliminarEmpleado={cargarEmpleados} empleado={empleadoAEliminar} />
+            <ModalRegistroEmpleado 
+                mostrarModal={mostrarModal} 
+                setMostrarModal={setMostrarModal} 
+                nuevoEmpleado={nuevoEmpleado} 
+                setNuevoEmpleado={setNuevoEmpleado} 
+                manejoCambioInput={(e) => setNuevoEmpleado({...nuevoEmpleado, [e.target.name]: e.target.value})} 
+                agregarEmpleado={handleAgregarEmpleado} 
+            />
+            
+            <ModalEdicionEmpleado 
+                mostrarModalEdicion={mostrarModalEdicion} 
+                setMostrarModalEdicion={setMostrarModalEdicion} 
+                empleadoEditar={empleadoEditar} 
+                setEmpleadoEditar={setEmpleadoEditar} 
+                manejoCambioInputEdicion={(e) => setEmpleadoEditar({...empleadoEditar, [e.target.name]: e.target.value})} 
+                actualizarEmpleado={handleActualizarEmpleado} 
+            />
+            
+            <ModalEliminacionEmpleado 
+                mostrarModalEliminacion={mostrarModalEliminacion} 
+                setMostrarModalEliminacion={setMostrarModalEliminacion} 
+                eliminarEmpleado={handleEliminarEmpleado} 
+                empleado={empleadoAEliminar} 
+            />
+            
             <NotificacionOperacion mostrar={toast.mostrar} mensaje={toast.mensaje} tipo={toast.tipo} onCerrar={() => setToast({ ...toast, mostrar: false })} />
         </Container>
     );

@@ -1,5 +1,6 @@
 import React from "react";
-import { Card, Button, Image, Badge } from "react-bootstrap";
+import { Card, Button, Badge } from "react-bootstrap";
+import ImagenEmpleado from "./ImagenEmpleado";
 
 const TarjetaEmpleado = ({ empleados, abrirModalEdicion, abrirModalEliminacion }) => {
     return (
@@ -10,12 +11,12 @@ const TarjetaEmpleado = ({ empleados, abrirModalEdicion, abrirModalEliminacion }
                         <Card.Body className="p-4">
                             <div className="d-flex align-items-start justify-content-between mb-4">
                                 <div className="d-flex align-items-center gap-3">
-                                    <Image
-                                        src={emp.url_imagen || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
+                                    <ImagenEmpleado
+                                        src={emp.url_imagen}
                                         roundedCircle
                                         width={64}
                                         height={64}
-                                        className="border border-3 border-white shadow-sm object-fit-cover"
+                                        className="border border-3 border-white shadow-sm"
                                     />
                                     <div>
                                         <h5 className="fw-bold mb-0 text-truncate text-premium-main" style={{ maxWidth: '180px' }}>

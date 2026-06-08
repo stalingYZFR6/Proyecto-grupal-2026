@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Modal, Form, Button, Image } from "react-bootstrap";
+import { Modal, Form, Button } from "react-bootstrap";
+import ImagenEmpleado from "./ImagenEmpleado";
 
 const ModalRegistroEmpleado = ({
     mostrarModal,
@@ -15,28 +16,28 @@ const ModalRegistroEmpleado = ({
     // MANEJAR IMAGEN
     const manejarImagen = (e) => {
 
-    const archivo = e.target.files[0];
+        const archivo = e.target.files[0];
 
-    if (!archivo) return;
+        if (!archivo) return;
 
-    // Liberar preview anterior
-    if (nuevoEmpleado?.preview_imagen) {
-        URL.revokeObjectURL(nuevoEmpleado.preview_imagen);
-    }
+        // Liberar preview anterior
+        if (nuevoEmpleado?.preview_imagen) {
+            URL.revokeObjectURL(nuevoEmpleado.preview_imagen);
+        }
 
-    // Nuevo preview temporal
-    const preview = URL.createObjectURL(archivo);
+        // Nuevo preview temporal
+        const preview = URL.createObjectURL(archivo);
 
-    setNuevoEmpleado({
-        ...nuevoEmpleado,
+        setNuevoEmpleado({
+            ...nuevoEmpleado,
 
-        // Archivo real
-        archivo_imagen: archivo,
+            // Archivo real
+            archivo_imagen: archivo,
 
-        // Preview visual
-        preview_imagen: preview,
-    });
-};
+            // Preview visual
+            preview_imagen: preview,
+        });
+    };
 
     const handleRegistrar = async () => {
 
@@ -72,18 +73,12 @@ const ModalRegistroEmpleado = ({
                     {/* FOTO */}
                     <div className="text-center mb-4">
 
-                        <Image
-                            src={
-                                nuevoEmpleado.preview_imagen ||
-                                "https://cdn-icons-png.flaticon.com/512/149/149071.png"
-                            }
+                        <ImagenEmpleado
+                            src={nuevoEmpleado.preview_imagen}
                             roundedCircle
                             width={120}
                             height={120}
                             className="border shadow-sm"
-                            style={{
-                                objectFit: "cover"
-                            }}
                         />
 
                         <Form.Group className="mt-3">

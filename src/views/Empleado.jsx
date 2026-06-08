@@ -43,10 +43,22 @@ const Empleados = () => {
     const subirImagen = async (archivo) => {
         if (!archivo) return null;
         
-        // Sanitizar el nombre del archivo usando solo números y la extensión original
+        // 1. Intentar crear el bucket 'empleados' por si no existe
+        try {
+            await supabase.storage.createBucket("empleados", {
+                public: true,
+                allowedMimeTypes: ["image/jpeg", "image/png", "image/gif", "image/webp"]
+            });
+        } catch (bucketErr) {
+            // Ignoramos si ya existe o si no hay permisos de creación directa
+            console.log("Aviso de creación de bucket:", bucketErr.message);
+        }
+
+        // 2. Sanitizar el nombre del archivo
         const extension = archivo.name.split('.').pop() || 'png';
         const nombreArchivo = `${Date.now()}.${extension}`;
 
+        // 3. Subir el archivo
         const { data, error } = await supabase.storage
             .from("empleados")
             .upload(nombreArchivo, archivo, {
@@ -55,7 +67,31 @@ const Empleados = () => {
                 contentType: archivo.type
             });
 
-        if (error) throw error;
+        if (error) {
+            // Si el error es que el bucket no existe, guiar amigablemente al usuario
+            if (error.message?.toLowerCase().includes("bucket not found") || error.status === 400) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "¡Falta configurar el Storage!",
+                    html: `
+                        <div class="text-start">
+                            <p>Para poder guardar fotos de empleados, debes crear el contenedor en tu panel de Supabase:</p>
+                            <ol>
+                                <li>Entra a tu panel de <b>Supabase</b>.</li>
+                                <li>Ve a la sección de <b>Storage</b> (icono de caja/almacenamiento).</li>
+                                <li>Haz clic en <b>New Bucket</b>.</li>
+                                <li>Escribe el nombre exactamente como: <code class="bg-light p-1 rounded">empleados</code></li>
+                                <li>Activa la opción de <b>Public Bucket</b> (¡Muy importante!).</li>
+                                <li>Guarda los cambios y vuelve a intentarlo.</li>
+                            </ol>
+                        </div>
+                    `,
+                    confirmButtonText: "Entendido",
+                    confirmButtonColor: "#3085d6"
+                });
+            }
+            throw error;
+        }
 
         const { data: urlData } = supabase.storage
             .from("empleados")
@@ -75,7 +111,7 @@ const Empleados = () => {
                     console.error("Error al subir imagen:", uploadErr);
                     setToast({ 
                         mostrar: true, 
-                        mensaje: "No se pudo subir la imagen al Storage. El empleado se creará con una foto por defecto.", 
+                        mensaje: "No se pudo subir la imagen. El empleado se creará con una foto por defecto.", 
                         tipo: "advertencia" 
                     });
                 }

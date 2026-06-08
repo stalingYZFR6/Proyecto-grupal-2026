@@ -1,16 +1,14 @@
 import React from "react";
-import { Card, Badge } from "react-bootstrap";
-import ImagenEmpleado from "./ImagenEmpleado";
+import { Card, Image, Badge } from "react-bootstrap";
 
 const TarjetaCatalogo = ({ empleado }) => {
     return (
         <Card className="premium-card h-100 overflow-hidden border-0 shadow-sm">
             {/* Imagen Superior */}
             <div className="position-relative" style={{ height: "220px", overflow: "hidden" }}>
-                <ImagenEmpleado
-                    src={empleado.url_imagen}
-                    className="w-100 h-100 transition-all hover-zoom"
-                    style={{ objectFit: "cover" }}
+                <Image
+                    src={empleado.url_imagen || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
+                    className="w-100 h-100 object-fit-cover transition-all hover-zoom"
                     alt={`${empleado.nombre} ${empleado.apellido}`}
                 />
                 <div className="position-absolute bottom-0 start-0 w-100 p-3 bg-gradient-dark text-white">

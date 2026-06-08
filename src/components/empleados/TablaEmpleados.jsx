@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Table, Spinner, Button } from "react-bootstrap";
-import ImagenEmpleado from "./ImagenEmpleado";
+import { Table, Spinner, Button, Image } from "react-bootstrap";
 import "bootstrap-icons/font/bootstrap-icons.css";
 
 const TablaEmpleados = ({
@@ -88,13 +87,23 @@ const TablaEmpleados = ({
 
                                 {/* FOTO */}
                                 <td className="text-center">
-                                    <ImagenEmpleado
-                                        src={empleado.url_imagen}
+
+                                    <Image
+                                        src={
+                                            empleado.url_imagen &&
+                                                !empleado.url_imagen.startsWith("blob:")
+                                                ? empleado.url_imagen
+                                                : "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                                        }
                                         roundedCircle
                                         width={50}
                                         height={50}
                                         className="border shadow-sm"
+                                        style={{
+                                            objectFit: "cover"
+                                        }}
                                     />
+
                                 </td>
 
                                 <td>

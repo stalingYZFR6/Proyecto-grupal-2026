@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import { Modal, Form, Button } from "react-bootstrap";
-import ImagenEmpleado from "./ImagenEmpleado";
+import { Modal, Form, Button, Image } from "react-bootstrap";
 
 const ModalEdicionEmpleado = ({
     mostrarModalEdicion,
@@ -16,28 +15,28 @@ const ModalEdicionEmpleado = ({
     // MANEJAR IMAGEN
     const manejarImagen = (e) => {
 
-        const archivo = e.target.files[0];
+    const archivo = e.target.files[0];
 
-        if (!archivo) return;
+    if (!archivo) return;
 
-        // Liberar preview anterior
-        if (empleadoEditar?.preview_imagen) {
-            URL.revokeObjectURL(empleadoEditar.preview_imagen);
-        }
+    // Liberar preview anterior
+    if (empleadoEditar?.preview_imagen) {
+        URL.revokeObjectURL(empleadoEditar.preview_imagen);
+    }
 
-        // Nuevo preview
-        const preview = URL.createObjectURL(archivo);
+    // Nuevo preview
+    const preview = URL.createObjectURL(archivo);
 
-        setEmpleadoEditar({
-            ...empleadoEditar,
+    setEmpleadoEditar({
+        ...empleadoEditar,
 
-            // Archivo real
-            archivo_imagen: archivo,
+        // Archivo real
+        archivo_imagen: archivo,
 
-            // Solo preview visual
-            preview_imagen: preview,
-        });
-    };
+        // Solo preview visual
+        preview_imagen: preview,
+    });
+};
 
     const handleActualizar = async () => {
 
@@ -73,12 +72,22 @@ const ModalEdicionEmpleado = ({
                     {/* FOTO */}
                     <div className="text-center mb-4">
 
-                        <ImagenEmpleado
-                            src={empleadoEditar?.preview_imagen || empleadoEditar?.url_imagen}
+                        <Image
+                            src={
+                                empleadoEditar?.preview_imagen
+                                    ? empleadoEditar.preview_imagen
+                                    : empleadoEditar?.url_imagen &&
+                                        !empleadoEditar.url_imagen.startsWith("blob:")
+                                        ? empleadoEditar.url_imagen
+                                        : "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                            }
                             roundedCircle
                             width={120}
                             height={120}
                             className="border shadow-sm"
+                            style={{
+                                objectFit: "cover"
+                            }}
                         />
 
                         <Form.Group className="mt-3">

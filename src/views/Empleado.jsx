@@ -39,13 +39,21 @@ const Empleados = () => {
 
     useEffect(() => { cargarEmpleados(); }, []);
 
-    // FUNCIÓN PARA SUBIR IMAGEN
+    // FUNCIÓN PARA SUBIR IMAGEN SANITIZADA
     const subirImagen = async (archivo) => {
         if (!archivo) return null;
-        const nombreArchivo = `${Date.now()}_${archivo.name}`;
+        
+        // Sanitizar el nombre del archivo usando solo números y la extensión original
+        const extension = archivo.name.split('.').pop() || 'png';
+        const nombreArchivo = `${Date.now()}.${extension}`;
+
         const { data, error } = await supabase.storage
             .from("empleados")
-            .upload(nombreArchivo, archivo);
+            .upload(nombreArchivo, archivo, {
+                cacheControl: '3600',
+                upsert: true,
+                contentType: archivo.type
+            });
 
         if (error) throw error;
 
@@ -61,7 +69,16 @@ const Empleados = () => {
         try {
             let urlImagen = "";
             if (nuevoEmpleado.archivo_imagen) {
-                urlImagen = await subirImagen(nuevoEmpleado.archivo_imagen);
+                try {
+                    urlImagen = await subirImagen(nuevoEmpleado.archivo_imagen);
+                } catch (uploadErr) {
+                    console.error("Error al subir imagen:", uploadErr);
+                    setToast({ 
+                        mostrar: true, 
+                        mensaje: "No se pudo subir la imagen al Storage. El empleado se creará con una foto por defecto.", 
+                        tipo: "advertencia" 
+                    });
+                }
             }
 
             const { error } = await supabase.from("empleado").insert([{
@@ -71,7 +88,7 @@ const Empleados = () => {
                 correo: nuevoEmpleado.correo,
                 telefono: nuevoEmpleado.telefono,
                 direccion: nuevoEmpleado.direccion,
-                url_imagen: urlImagen
+                url_imagen: urlImagen || "https://cdn-icons-png.flaticon.com/512/149/149071.png"
             }]);
 
             if (error) throw error;
@@ -89,9 +106,21 @@ const Empleados = () => {
     const handleActualizarEmpleado = async () => {
         try {
             let urlImagen = empleadoEditar.url_imagen;
+            let subidaExitosa = true;
             
             if (empleadoEditar.archivo_imagen) {
-                urlImagen = await subirImagen(empleadoEditar.archivo_imagen);
+                try {
+                    const nuevaUrl = await subirImagen(empleadoEditar.archivo_imagen);
+                    if (nuevaUrl) urlImagen = nuevaUrl;
+                } catch (uploadErr) {
+                    console.error("Error al subir imagen:", uploadErr);
+                    subidaExitosa = false;
+                    setToast({ 
+                        mostrar: true, 
+                        mensaje: "No se pudo subir la nueva imagen. Se actualizarán solo los datos de texto.", 
+                        tipo: "advertencia" 
+                    });
+                }
             }
 
             const { error } = await supabase.from("empleado").update({
@@ -106,7 +135,9 @@ const Empleados = () => {
 
             if (error) throw error;
 
-            setToast({ mostrar: true, mensaje: "Empleado actualizado con éxito", tipo: "exito" });
+            if (subidaExitosa) {
+                setToast({ mostrar: true, mensaje: "Empleado actualizado con éxito", tipo: "exito" });
+            }
             setMostrarModalEdicion(false);
             cargarEmpleados();
         } catch (err) {

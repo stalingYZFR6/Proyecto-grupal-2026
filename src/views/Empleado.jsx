@@ -39,7 +39,7 @@ const Empleados = () => {
 
     useEffect(() => { cargarEmpleados(); }, []);
 
-    // FUNCIÓN PARA SUBIR IMAGEN SANITIZADA
+    // FUNCIÓN PARA SUBIR IMAGEN SANITIZADA AL BUCKET CORRECTO
     const subirImagen = async (archivo) => {
         if (!archivo) return null;
         
@@ -48,7 +48,7 @@ const Empleados = () => {
         const nombreArchivo = `${Date.now()}.${extension}`;
 
         const { data, error } = await supabase.storage
-            .from("empleados")
+            .from("imagenes_empleado")
             .upload(nombreArchivo, archivo, {
                 cacheControl: '3600',
                 upsert: true,
@@ -58,7 +58,7 @@ const Empleados = () => {
         if (error) throw error;
 
         const { data: urlData } = supabase.storage
-            .from("empleados")
+            .from("imagenes_empleado")
             .getPublicUrl(nombreArchivo);
 
         return urlData.publicUrl;

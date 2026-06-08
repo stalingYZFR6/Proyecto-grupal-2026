@@ -39,21 +39,41 @@ const Empleados = () => {
 
     useEffect(() => { cargarEmpleados(); }, []);
 
-    // FUNCIÓN PARA SUBIR IMAGEN
+    // Convertir archivo a Base64 como alternativa segura
+    const convertirBase64 = (archivo) => {
+        return new Promise((resolve, reject) => {
+            const fileReader = new FileReader();
+            fileReader.readAsDataURL(archivo);
+            fileReader.onload = () => {
+                resolve(fileReader.result);
+            };
+            fileReader.onerror = (error) => {
+                reject(error);
+            };
+        });
+    };
+
+    // FUNCIÓN PARA SUBIR IMAGEN CON FALLBACK SEGURO
     const subirImagen = async (archivo) => {
         if (!archivo) return null;
-        const nombreArchivo = `${Date.now()}_${archivo.name}`;
-        const { data, error } = await supabase.storage
-            .from("empleados")
-            .upload(nombreArchivo, archivo);
+        try {
+            const nombreArchivo = `${Date.now()}_${archivo.name}`;
+            const { data, error } = await supabase.storage
+                .from("empleados")
+                .upload(nombreArchivo, archivo);
 
-        if (error) throw error;
+            if (error) throw error;
 
-        const { data: urlData } = supabase.storage
-            .from("empleados")
-            .getPublicUrl(nombreArchivo);
+            const { data: urlData } = supabase.storage
+                .from("empleados")
+                .getPublicUrl(nombreArchivo);
 
-        return urlData.publicUrl;
+            return urlData.publicUrl;
+        } catch (storageError) {
+            console.warn("Error en Supabase Storage, usando Base64 como alternativa:", storageError);
+            // Si falla el storage, convertimos a Base64 para que se guarde sí o sí
+            return await convertirBase64(archivo);
+        }
     };
 
     // AGREGAR EMPLEADO

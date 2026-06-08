@@ -48,7 +48,7 @@ const Empleados = () => {
         const nombreArchivo = `${Date.now()}.${extension}`;
 
         const { data, error } = await supabase.storage
-            .from("empleados")
+            .from("imagens_empleado")
             .upload(nombreArchivo, archivo, {
                 cacheControl: '3600',
                 upsert: true,
@@ -58,7 +58,7 @@ const Empleados = () => {
         if (error) throw error;
 
         const { data: urlData } = supabase.storage
-            .from("empleados")
+            .from("imagens_empleado")
             .getPublicUrl(nombreArchivo);
 
         return urlData.publicUrl;

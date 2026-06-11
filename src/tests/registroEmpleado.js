@@ -1,3 +1,10 @@
+/**
+ * Función para validar los datos de registro de un empleado.
+ * Aplica análisis de valores límite y clases de equivalencia.
+ * 
+ * @param {Object} empleado - Objeto con los datos del empleado.
+ * @returns {Object} Resultado de la validación { valido: boolean, mensaje?: string }
+ */
 function registroEmpleado(empleado) {
   const { nombre, apellido, cedula, correo, telefono } = empleado || {};
 

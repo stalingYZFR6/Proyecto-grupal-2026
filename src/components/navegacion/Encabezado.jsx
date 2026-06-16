@@ -11,10 +11,23 @@ const NavbarModaExpress = () => {
     const [isDarkMode, setIsDarkMode] = useState(true);
     const [mostrarChatIA, setMostrarChatIA] = useState(false);
     const [menuAbierto, setMenuAbierto] = useState(false);
+    const [userRole, setUserRole] = useState("empleado");
     
     const navigate = useNavigate();
     const location = useLocation();
     const NOMBRE_MARCA = "AssisTech";
+
+    useEffect(() => {
+        const storedUser = localStorage.getItem("usuario-supabase");
+        if (storedUser) {
+            try {
+                const parsed = JSON.parse(storedUser);
+                setUserRole(parsed.rol || "empleado");
+            } catch (e) {
+                setUserRole("empleado");
+            }
+        }
+    }, [location]);
 
     const toggleDarkMode = () => {
         const newMode = !isDarkMode;
@@ -29,17 +42,6 @@ const NavbarModaExpress = () => {
         setIsDarkMode(shouldBeDark);
         document.documentElement.setAttribute("data-bs-theme", shouldBeDark ? "dark" : "light");
     }, []);
-
-    const manejarTeclaEscape = useCallback((evento) => {
-        if (evento.key === "Escape") {
-            setMenuAbierto(false);
-        }
-    }, []);
-
-    useEffect(() => {
-        window.addEventListener("keydown", manejarTeclaEscape);
-        return () => window.removeEventListener("keydown", manejarTeclaEscape);
-    }, [manejarTeclaEscape]);
 
     const manejarNavegacion = (ruta) => {
         navigate(ruta);
@@ -57,17 +59,22 @@ const NavbarModaExpress = () => {
         }
     };
 
-    // Rutas principales (Siempre visibles)
+    const esAdmin = userRole === "admin";
+
+    // Rutas principales
     const rutasPrincipales = [
         { path: "/", label: "Inicio", icon: "bi-grid-1x2" },
-        { path: "/dashboard", label: "Estadísticas", icon: "bi-bar-chart" },
-        { path: "/asistencias", label: "Asistencia", icon: "bi-calendar-check" },
+        { path: "/asistencias", label: "Mi Asistencia", icon: "bi-calendar-check" },
+        { path: "/catalogo", label: "Catálogo", icon: "bi-journal-bookmark" },
+        { path: "/empleados", label: "Mi Perfil", icon: "bi-person" },
     ];
 
-    // Rutas de Gestión (En un dropdown)
+    if (esAdmin) {
+        rutasPrincipales.splice(1, 0, { path: "/dashboard", label: "Estadísticas", icon: "bi-bar-chart" });
+    }
+
     const rutasGestion = [
         { path: "/empleados", label: "Personal", icon: "bi-people" },
-        { path: "/catalogo", label: "Catálogo", icon: "bi-journal-bookmark" },
         { path: "/incidencias", label: "Incidencias", icon: "bi-exclamation-circle" },
         { path: "/turnos", label: "Turnos", icon: "bi-clock" },
         { path: "/usuarios", label: "Usuarios", icon: "bi-person-gear" },
@@ -79,20 +86,14 @@ const NavbarModaExpress = () => {
         <>
             <MascotaChibi />
             <Navbar expand="lg" fixed="top" className="glass-nav py-2" style={{ zIndex: 1030 }}>
-                <Container className="d-flex justify-content-between align-items-center">
-                    {/* Logo y Marca */}
-                    <Navbar.Brand 
-                        onClick={() => manejarNavegacion("/")} 
-                        className="d-flex align-items-center gap-2 me-4" 
-                        style={{ cursor: 'pointer' }}
-                    >
+                <Container>
+                    <Navbar.Brand onClick={() => manejarNavegacion("/")} className="d-flex align-items-center gap-2 me-4" style={{ cursor: 'pointer' }}>
                         <img src={logo} alt="logo" width="36" height="36" className="rounded-circle border border-2 border-primary border-opacity-25" />
                         <span className="fw-bold fs-5 text-gradient" style={{ background: 'linear-gradient(45deg, var(--text-main), #38bdf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                             {NOMBRE_MARCA}
                         </span>
                     </Navbar.Brand>
 
-                    {/* NAVEGACIÓN ESCRITORIO */}
                     <div className="d-none d-lg-flex flex-grow-1 align-items-center">
                         <Nav className="me-auto gap-1">
                             {rutasPrincipales.map((item) => (
@@ -106,131 +107,60 @@ const NavbarModaExpress = () => {
                                 </Nav.Link>
                             ))}
 
-                            {/* Dropdown de Gestión */}
-                            <NavDropdown 
-                                title={<><i className="bi bi-layers me-2"></i>Gestión</>}
-                                id="nav-gestion-dropdown"
-                                className="px-2 small fw-medium text-muted rounded-pill hover:bg-light transition-all"
-                            >
-                                {rutasGestion.map((item) => (
-                                    <NavDropdown.Item 
-                                        key={item.path}
-                                        onClick={() => manejarNavegacion(item.path)}
-                                        className={`d-flex align-items-center gap-2 py-2 ${location.pathname === item.path ? 'text-primary fw-bold' : ''}`}
-                                    >
-                                        <i className={`bi ${item.icon}`}></i>
-                                        {item.label}
-                                    </NavDropdown.Item>
-                                ))}
-                            </NavDropdown>
+                            {esAdmin && (
+                                <NavDropdown title={<><i className="bi bi-layers me-2"></i>Gestión</>} id="nav-gestion-dropdown" className="px-2 small fw-medium text-muted rounded-pill hover:bg-light">
+                                    {rutasGestion.map((item) => (
+                                        <NavDropdown.Item key={item.path} onClick={() => manejarNavegacion(item.path)}>
+                                            <i className={`bi ${item.icon} me-2`}></i>{item.label}
+                                        </NavDropdown.Item>
+                                    ))}
+                                </NavDropdown>
+                            )}
                         </Nav>
                     </div>
 
-                    {/* ACCIONES Y AJUSTES */}
-                    <div className="d-none d-lg-flex align-items-center gap-2">
-                        {/* Menú de Ajustes y Herramientas */}
-                        <NavDropdown 
-                            align="end"
-                            title={<i className="bi bi-gear fs-5 text-muted hover:text-primary transition-all"></i>}
-                            id="nav-settings-dropdown"
-                            className="no-caret-dropdown"
-                        >
+                    <div className="d-flex align-items-center gap-2">
+                        <NavDropdown align="end" title={<i className="bi bi-gear fs-5 text-muted"></i>} id="nav-settings-dropdown" className="no-caret-dropdown">
                             <NavDropdown.Header className="small text-uppercase fw-bold opacity-50">Herramientas</NavDropdown.Header>
-                            <NavDropdown.Item onClick={() => setMostrarChatIA(true)} className="d-flex align-items-center gap-2 py-2">
-                                <i className="bi bi-robot text-primary"></i> Asistente IA
-                            </NavDropdown.Item>
-                            
+                            <NavDropdown.Item onClick={() => setMostrarChatIA(true)}><i className="bi bi-robot text-primary me-2"></i> Asistente IA</NavDropdown.Item>
                             <NavDropdown.Divider />
-                            
-                            <NavDropdown.Header className="small text-uppercase fw-bold opacity-50">Preferencias</NavDropdown.Header>
-                            <NavDropdown.Item onClick={toggleDarkMode} className="d-flex align-items-center gap-2 py-2">
-                                <i className={`bi ${isDarkMode ? "bi-sun text-warning" : "bi-moon text-info"}`}></i>
-                                Modo {isDarkMode ? "Claro" : "Oscuro"}
-                            </NavDropdown.Item>
-                            
+                            <NavDropdown.Item onClick={toggleDarkMode}><i className={`bi ${isDarkMode ? "bi-sun" : "bi-moon"} me-2`}></i> Modo {isDarkMode ? "Claro" : "Oscuro"}</NavDropdown.Item>
                             <NavDropdown.Divider />
-                            
-                            <NavDropdown.Item onClick={cerrarSesion} className="d-flex align-items-center gap-2 py-2 text-danger">
-                                <i className="bi bi-box-arrow-right"></i> Cerrar Sesión
-                            </NavDropdown.Item>
+                            <NavDropdown.Item onClick={cerrarSesion} className="text-danger"><i className="bi bi-box-arrow-right me-2"></i> Cerrar Sesión</NavDropdown.Item>
                         </NavDropdown>
-                    </div>
 
-                    {/* BOTÓN MENÚ MÓVIL */}
-                    <Button 
-                        variant="link" 
-                        className="d-lg-none p-2 text-muted hover:text-primary transition-all border-0"
-                        onClick={() => setMenuAbierto(true)}
-                        aria-label="Abrir menú"
-                    >
-                        <i className="bi bi-list fs-3"></i>
-                    </Button>
+                        <Button variant="link" className="d-lg-none p-2 text-muted border-0" onClick={() => setMenuAbierto(true)}>
+                            <i className="bi bi-list fs-3"></i>
+                        </Button>
+                    </div>
                 </Container>
             </Navbar>
 
-            {/* PANEL LATERAL MÓVIL */}
-            <Offcanvas 
-                show={menuAbierto} 
-                onHide={() => setMenuAbierto(false)} 
-                placement="end"
-                className="d-lg-none"
-                style={{ background: "var(--bg-card)", color: "var(--text-main)" }}
-            >
-                <Offcanvas.Header closeButton className="border-bottom border-opacity-10">
-                    <Offcanvas.Title className="d-flex align-items-center gap-2">
-                        <img src={logo} alt="logo" width="30" height="30" className="rounded-circle" />
-                        <span className="fw-bold text-gradient" style={{ background: 'linear-gradient(45deg, var(--text-main), #38bdf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                            {NOMBRE_MARCA}
-                        </span>
-                    </Offcanvas.Title>
+            <Offcanvas show={menuAbierto} onHide={() => setMenuAbierto(false)} placement="end" className="d-lg-none">
+                <Offcanvas.Header closeButton>
+                    <Offcanvas.Title className="fw-bold">{NOMBRE_MARCA}</Offcanvas.Title>
                 </Offcanvas.Header>
-                <Offcanvas.Body className="d-flex flex-column">
+                <Offcanvas.Body>
                     <Nav className="flex-column gap-1">
-                        <div className="text-uppercase x-small fw-bold text-muted mb-2 px-2 mt-2" style={{ letterSpacing: "1px", fontSize: '0.7rem' }}>
-                            Navegación Principal
-                        </div>
-                        {[...rutasPrincipales, ...rutasGestion].map((item) => (
-                            <Nav.Link 
-                                key={item.path} 
-                                onClick={() => manejarNavegacion(item.path)}
-                                className={`px-3 py-2.5 rounded-3 small fw-medium transition-all d-flex align-items-center gap-3 ${location.pathname === item.path ? 'bg-primary bg-opacity-10 text-primary' : 'text-muted hover:bg-light'}`}
-                            >
-                                <i className={`bi ${item.icon} fs-5`}></i>
-                                <span>{item.label}</span>
+                        {rutasPrincipales.map((item) => (
+                            <Nav.Link key={item.path} onClick={() => manejarNavegacion(item.path)} className="d-flex align-items-center gap-3 py-2 text-muted">
+                                <i className={`bi ${item.icon} fs-5`}></i>{item.label}
                             </Nav.Link>
                         ))}
+                        {esAdmin && (
+                            <>
+                                <hr />
+                                <div className="text-uppercase x-small fw-bold text-muted mb-2 px-2">Gestión</div>
+                                {rutasGestion.map((item) => (
+                                    <Nav.Link key={item.path} onClick={() => manejarNavegacion(item.path)} className="d-flex align-items-center gap-3 py-2 text-muted">
+                                        <i className={`bi ${item.icon} fs-5`}></i>{item.label}
+                                    </Nav.Link>
+                                ))}
+                            </>
+                        )}
                     </Nav>
-
-                    <div className="mt-auto pt-4 border-top border-opacity-10">
-                        <Button 
-                            variant="light" 
-                            className="w-100 mb-2 py-2.5 rounded-3 d-flex align-items-center justify-content-start gap-3 bg-premium-light border-0 text-premium-main"
-                            onClick={() => {
-                                setMenuAbierto(false);
-                                setMostrarChatIA(true);
-                            }}
-                        >
-                            <i className="bi bi-robot fs-5 text-primary"></i>
-                            <span className="small fw-semibold">Asistente IA</span>
-                        </Button>
-
-                        <Button 
-                            variant="light" 
-                            className="w-100 mb-3 py-2.5 rounded-3 d-flex align-items-center justify-content-start gap-3 bg-premium-light border-0 text-premium-main"
-                            onClick={toggleDarkMode}
-                        >
-                            <i className={`bi ${isDarkMode ? "bi-sun" : "bi-moon"} fs-5 text-warning`}></i>
-                            <span className="small fw-semibold">Modo {isDarkMode ? "Claro" : "Oscuro"}</span>
-                        </Button>
-
-                        <Button 
-                            variant="danger" 
-                            className="w-100 py-2.5 rounded-3 d-flex align-items-center justify-content-center gap-2 fw-bold"
-                            onClick={cerrarSesion}
-                        >
-                            <i className="bi bi-box-arrow-right fs-5"></i>
-                            <span>Cerrar Sesión</span>
-                        </Button>
+                    <div className="mt-auto">
+                        <Button variant="danger" className="w-100 py-2 mt-4" onClick={cerrarSesion}>Cerrar Sesión</Button>
                     </div>
                 </Offcanvas.Body>
             </Offcanvas>

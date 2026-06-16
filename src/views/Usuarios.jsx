@@ -169,20 +169,19 @@ const Usuarios = () => {
     }
   };
 
-  // --- Eliminar usuario ---
+  // --- Eliminar usuario completo (Pública + Auth) ---
   const eliminarUsuario = async (id) => {
     try {
-      const { error } = await supabase
-        .from("usuarios")
-        .delete()
-        .eq("id_usuario", id);
+      const { error } = await supabase.rpc("eliminar_usuario_completo", {
+        p_id_usuario: id
+      });
 
       if (error) throw error;
 
       Swal.fire({
         icon: "success",
         title: "Usuario Eliminado",
-        text: "El registro de acceso ha sido eliminado.",
+        text: "El registro de acceso y su cuenta de autenticación han sido eliminados por completo.",
         timer: 1500,
         showConfirmButton: false
       });

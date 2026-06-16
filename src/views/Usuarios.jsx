@@ -126,13 +126,16 @@ const Usuarios = () => {
         throw new Error("No se pudo crear el usuario en el servicio de autenticación.");
       }
 
-      // Paso 2: Insertar en la tabla public.usuarios
+      // Tomar el UUID generado por Supabase Auth
+      const uuidAuth = authData.user.id;
+
+      // Paso 2: Insertar en la tabla pública relacionando el id_auth correctamente
       const { error: dbError } = await supabase
         .from("usuarios")
         .insert([
           {
             id_empleado: parseInt(nuevoUsuario.id_empleado),
-            id_auth: authData.user.id,
+            id_auth: uuidAuth,
             rol: nuevoUsuario.rol_aplicacion,
             activo: true
           }
@@ -140,12 +143,20 @@ const Usuarios = () => {
 
       if (dbError) throw dbError;
 
+      // Notificación clara sobre la confirmación de correo electrónico
       Swal.fire({
         icon: "success",
-        title: "Usuario Creado",
-        text: "El usuario se ha registrado correctamente.",
-        timer: 2000,
-        showConfirmButton: false
+        title: "Usuario Registrado",
+        html: `
+          <p>El usuario se ha registrado correctamente en el sistema.</p>
+          <hr />
+          <p class="small text-muted text-start">
+            <i class="bi bi-info-circle-fill text-info me-1"></i>
+            <strong>Nota de Autenticación:</strong> Si la confirmación de correo electrónico está activa en tu panel de Supabase, el usuario deberá verificar su bandeja de entrada antes de poder iniciar sesión.
+          </p>
+        `,
+        confirmButtonText: "Entendido",
+        confirmButtonColor: "#0f172a"
       });
 
       setNuevoUsuario({ id_empleado: "", login: "", password: "", rol_aplicacion: "" });

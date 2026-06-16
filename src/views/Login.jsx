@@ -12,13 +12,19 @@ const Login = () => {
 
     const iniciarSesion = async () => {
         try {
+            setError(null);
             const { data, error } = await supabase.auth.signInWithPassword({
                 email: usuario,
                 password: contrasena,
             });
 
             if (error) {
-                setError("Credenciales no válidas. Por favor, verifica tus datos.");
+                // Capturar específicamente si el correo no ha sido confirmado
+                if (error.message?.toLowerCase().includes("email not confirmed") || error.status === 400) {
+                    setError("El correo electrónico no ha sido confirmado. Por favor, revisa tu bandeja de entrada para verificar tu cuenta.");
+                } else {
+                    setError("Credenciales no válidas. Por favor, verifica tus datos.");
+                }
                 return;
             }
 

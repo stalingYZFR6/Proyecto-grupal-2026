@@ -6,6 +6,7 @@ import Swal from "sweetalert2";
 import ModalEliminacionEmpleado from "../components/empleados/ModalEliminacionEmpleado";
 import ModalEdicionEmpleado from "../components/empleados/ModalEdicionEmpleado";
 import ModalRegistroEmpleado from "../components/empleados/ModalRegistroEmpleado";
+import ModalExpedienteEmpleado from "../components/empleados/ModalExpedienteEmpleado";
 import TarjetaEmpleado from "../components/empleados/TarjetaEmpleado";
 import NotificacionOperacion from "../components/NotificacionOperacion";
 
@@ -23,6 +24,10 @@ const Empleados = () => {
     const [empleadoEditar, setEmpleadoEditar] = useState(null);
     const [mostrarModalEliminacion, setMostrarModalEliminacion] = useState(false);
     const [empleadoAEliminar, setEmpleadoAEliminar] = useState(null);
+    
+    // Estados para el Expediente
+    const [mostrarModalExpediente, setMostrarModalExpediente] = useState(false);
+    const [empleadoExpediente, setEmpleadoExpediente] = useState(null);
 
     const cargarEmpleados = async () => {
         try {
@@ -39,11 +44,8 @@ const Empleados = () => {
 
     useEffect(() => { cargarEmpleados(); }, []);
 
-    // FUNCIÓN PARA SUBIR IMAGEN SANITIZADA AL BUCKET CORRECTO
     const subirImagen = async (archivo) => {
         if (!archivo) return null;
-        
-        // Sanitizar el nombre del archivo usando solo números y la extensión original
         const extension = archivo.name.split('.').pop() || 'png';
         const nombreArchivo = `${Date.now()}.${extension}`;
 
@@ -64,7 +66,6 @@ const Empleados = () => {
         return urlData.publicUrl;
     };
 
-    // AGREGAR EMPLEADO
     const handleAgregarEmpleado = async () => {
         try {
             let urlImagen = "";
@@ -102,7 +103,6 @@ const Empleados = () => {
         }
     };
 
-    // ACTUALIZAR EMPLEADO
     const handleActualizarEmpleado = async () => {
         try {
             let urlImagen = empleadoEditar.url_imagen;
@@ -145,7 +145,6 @@ const Empleados = () => {
         }
     };
 
-    // ELIMINAR EMPLEADO
     const handleEliminarEmpleado = async () => {
         try {
             const { error } = await supabase.from("empleado").delete().eq("id_empleado", empleadoAEliminar.id_empleado);
@@ -157,6 +156,11 @@ const Empleados = () => {
         } catch (err) {
             setToast({ mostrar: true, mensaje: "Error al eliminar", tipo: "error" });
         }
+    };
+
+    const abrirExpediente = (emp) => {
+        setEmpleadoExpediente(emp);
+        setMostrarModalExpediente(true);
     };
 
     const empleadosFiltrados = empleados.filter((emp) =>
@@ -221,6 +225,7 @@ const Empleados = () => {
                         empleados={empleadosFiltrados}
                         abrirModalEdicion={(emp) => { setEmpleadoEditar(emp); setMostrarModalEdicion(true); }}
                         abrirModalEliminacion={(emp) => { setEmpleadoAEliminar(emp); setMostrarModalEliminacion(true); }}
+                        abrirExpediente={abrirExpediente}
                     />
                 </div>
             )}
@@ -248,6 +253,12 @@ const Empleados = () => {
                 setMostrarModalEliminacion={setMostrarModalEliminacion} 
                 eliminarEmpleado={handleEliminarEmpleado} 
                 empleado={empleadoAEliminar} 
+            />
+
+            <ModalExpedienteEmpleado
+                show={mostrarModalExpediente}
+                handleClose={() => setMostrarModalExpediente(false)}
+                empleado={empleadoExpediente}
             />
             
             <NotificacionOperacion mostrar={toast.mostrar} mensaje={toast.mensaje} tipo={toast.tipo} onCerrar={() => setToast({ ...toast, mostrar: false })} />

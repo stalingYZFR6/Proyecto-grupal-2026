@@ -11,6 +11,7 @@ const NavbarModaExpress = () => {
     const [isDarkMode, setIsDarkMode] = useState(true);
     const [mostrarChatIA, setMostrarChatIA] = useState(false);
     const [menuAbierto, setMenuAbierto] = useState(false);
+    const [rolUsuario, setRolUsuario] = useState("empleado");
     
     const navigate = useNavigate();
     const location = useLocation();
@@ -28,6 +29,10 @@ const NavbarModaExpress = () => {
         const shouldBeDark = savedMode !== null ? savedMode === "true" : true;
         setIsDarkMode(shouldBeDark);
         document.documentElement.setAttribute("data-bs-theme", shouldBeDark ? "dark" : "light");
+        
+        // Obtener rol del localStorage
+        const rol = localStorage.getItem("usuario-rol");
+        if (rol) setRolUsuario(rol);
     }, []);
 
     const manejarTeclaEscape = useCallback((evento) => {
@@ -50,6 +55,8 @@ const NavbarModaExpress = () => {
         try {
             await supabase.auth.signOut();
             localStorage.removeItem("usuario-supabase");
+            localStorage.removeItem("usuario-rol");
+            localStorage.removeItem("usuario-id-empleado");
             setMenuAbierto(false);
             navigate("/login");
         } catch (err) {
@@ -57,21 +64,21 @@ const NavbarModaExpress = () => {
         }
     };
 
-    // Rutas principales (Siempre visibles)
+    // Rutas principales (Filtradas por rol)
     const rutasPrincipales = [
-        { path: "/", label: "Inicio", icon: "bi-grid-1x2" },
-        { path: "/dashboard", label: "Estadísticas", icon: "bi-bar-chart" },
-        { path: "/asistencias", label: "Asistencia", icon: "bi-calendar-check" },
-    ];
+        { path: "/", label: "Inicio", icon: "bi-grid-1x2", roles: ["admin", "supervisor", "empleado"] },
+        { path: "/dashboard", label: "Estadísticas", icon: "bi-bar-chart", roles: ["admin", "supervisor", "empleado"] },
+        { path: "/asistencias", label: "Asistencia", icon: "bi-calendar-check", roles: ["admin", "supervisor", "empleado"] },
+    ].filter(r => r.roles.includes(rolUsuario));
 
-    // Rutas de Gestión (En un dropdown)
+    // Rutas de Gestión (Solo Admin y Supervisor)
     const rutasGestion = [
-        { path: "/empleados", label: "Personal", icon: "bi-people" },
-        { path: "/catalogo", label: "Catálogo", icon: "bi-journal-bookmark" },
-        { path: "/incidencias", label: "Incidencias", icon: "bi-exclamation-circle" },
-        { path: "/turnos", label: "Turnos", icon: "bi-clock" },
-        { path: "/usuarios", label: "Usuarios", icon: "bi-person-gear" },
-    ];
+        { path: "/empleados", label: "Personal", icon: "bi-people", roles: ["admin", "supervisor"] },
+        { path: "/catalogo", label: "Catálogo", icon: "bi-journal-bookmark", roles: ["admin", "supervisor", "empleado"] },
+        { path: "/incidencias", label: "Incidencias", icon: "bi-exclamation-circle", roles: ["admin", "supervisor"] },
+        { path: "/turnos", label: "Turnos", icon: "bi-clock", roles: ["admin", "supervisor"] },
+        { path: "/usuarios", label: "Usuarios", icon: "bi-person-gear", roles: ["admin"] },
+    ].filter(r => r.roles.includes(rolUsuario));
 
     if (location.pathname === "/login") return null;
 
@@ -80,7 +87,6 @@ const NavbarModaExpress = () => {
             <MascotaChibi />
             <Navbar expand="lg" fixed="top" className="glass-nav py-2" style={{ zIndex: 1030 }}>
                 <Container className="d-flex justify-content-between align-items-center">
-                    {/* Logo y Marca */}
                     <Navbar.Brand 
                         onClick={() => manejarNavegacion("/")} 
                         className="d-flex align-items-center gap-2 me-4" 
@@ -92,7 +98,6 @@ const NavbarModaExpress = () => {
                         </span>
                     </Navbar.Brand>
 
-                    {/* NAVEGACIÓN ESCRITORIO */}
                     <div className="d-none d-lg-flex flex-grow-1 align-items-center">
                         <Nav className="me-auto gap-1">
                             {rutasPrincipales.map((item) => (
@@ -106,29 +111,28 @@ const NavbarModaExpress = () => {
                                 </Nav.Link>
                             ))}
 
-                            {/* Dropdown de Gestión */}
-                            <NavDropdown 
-                                title={<><i className="bi bi-layers me-2"></i>Gestión</>}
-                                id="nav-gestion-dropdown"
-                                className="px-2 small fw-medium text-muted rounded-pill hover:bg-light transition-all"
-                            >
-                                {rutasGestion.map((item) => (
-                                    <NavDropdown.Item 
-                                        key={item.path}
-                                        onClick={() => manejarNavegacion(item.path)}
-                                        className={`d-flex align-items-center gap-2 py-2 ${location.pathname === item.path ? 'text-primary fw-bold' : ''}`}
-                                    >
-                                        <i className={`bi ${item.icon}`}></i>
-                                        {item.label}
-                                    </NavDropdown.Item>
-                                ))}
-                            </NavDropdown>
+                            {rutasGestion.length > 0 && (
+                                <NavDropdown 
+                                    title={<><i className="bi bi-layers me-2"></i>Gestión</>}
+                                    id="nav-gestion-dropdown"
+                                    className="px-2 small fw-medium text-muted rounded-pill hover:bg-light transition-all"
+                                >
+                                    {rutasGestion.map((item) => (
+                                        <NavDropdown.Item 
+                                            key={item.path}
+                                            onClick={() => manejarNavegacion(item.path)}
+                                            className={`d-flex align-items-center gap-2 py-2 ${location.pathname === item.path ? 'text-primary fw-bold' : ''}`}
+                                        >
+                                            <i className={`bi ${item.icon}`}></i>
+                                            {item.label}
+                                        </NavDropdown.Item>
+                                    ))}
+                                </NavDropdown>
+                            )}
                         </Nav>
                     </div>
 
-                    {/* ACCIONES Y AJUSTES */}
                     <div className="d-none d-lg-flex align-items-center gap-2">
-                        {/* Menú de Ajustes y Herramientas */}
                         <NavDropdown 
                             align="end"
                             title={<i className="bi bi-gear fs-5 text-muted hover:text-primary transition-all"></i>}
@@ -156,7 +160,6 @@ const NavbarModaExpress = () => {
                         </NavDropdown>
                     </div>
 
-                    {/* BOTÓN MENÚ MÓVIL */}
                     <Button 
                         variant="link" 
                         className="d-lg-none p-2 text-muted hover:text-primary transition-all border-0"
@@ -168,7 +171,6 @@ const NavbarModaExpress = () => {
                 </Container>
             </Navbar>
 
-            {/* PANEL LATERAL MÓVIL */}
             <Offcanvas 
                 show={menuAbierto} 
                 onHide={() => setMenuAbierto(false)} 

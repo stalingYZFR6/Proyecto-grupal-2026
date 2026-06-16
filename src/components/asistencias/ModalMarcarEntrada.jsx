@@ -24,6 +24,8 @@ const ModalMarcarEntrada = ({
   const [turnos, setTurnos] = useState([]);
   const [incidencias, setIncidencias] = useState([]);
 
+  const [rolUsuario, setRolUsuario] = useState("empleado");
+
   const [formData, setFormData] = useState({
     id_empleado: "",
     id_turno: "",
@@ -33,13 +35,21 @@ const ModalMarcarEntrada = ({
 
   useEffect(() => {
     if (show) {
+      const rol = localStorage.getItem("usuario-rol");
+      const idEmp = localStorage.getItem("usuario-id-empleado");
+      
+      setRolUsuario(rol || "empleado");
+      
+      if (rol === "empleado" && idEmp) {
+          setFormData(prev => ({ ...prev, id_empleado: idEmp }));
+      }
+      
       cargarDatos();
     }
   }, [show]);
 
   const cargarDatos = async () => {
     try {
-
       // EMPLEADOS
       const { data: empleadosData, error: empError } =
         await supabase
@@ -85,9 +95,11 @@ const ModalMarcarEntrada = ({
   };
 
   const limpiarFormulario = () => {
+    const rol = localStorage.getItem("usuario-rol");
+    const idEmp = localStorage.getItem("usuario-id-empleado");
 
     setFormData({
-      id_empleado: "",
+      id_empleado: (rol === "empleado" && idEmp) ? idEmp : "",
       id_turno: "",
       id_incidencia: "",
       estado_asistencia: "Presente",
@@ -97,34 +109,15 @@ const ModalMarcarEntrada = ({
   };
 
   const handleSubmit = async (e) => {
-
     e.preventDefault();
-
     setLoading(true);
     setError("");
 
     try {
-
       const ahora = new Date();
-
       const fecha = ahora.toISOString().split("T")[0];
-
-      const dias = [
-        "Domingo",
-        "Lunes",
-        "Martes",
-        "Miércoles",
-        "Jueves",
-        "Viernes",
-        "Sábado",
-      ];
-
-      const dia_semana =
-        dias[ahora.getDay()];
-
-      // ======================================
-      // BUSCAR JORNADA DEL DÍA
-      // ======================================
+      const dias = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+      const dia_semana = dias[ahora.getDay()];
 
       let { data: jornada, error: jornadaError } =
         await supabase
@@ -135,33 +128,17 @@ const ModalMarcarEntrada = ({
 
       if (jornadaError) throw jornadaError;
 
-      // ======================================
-      // SI NO EXISTE -> CREARLA
-      // ======================================
-
       if (!jornada) {
-
         const { data: nuevaJornada, error: crearError } =
           await supabase
             .from("jornadas_asistencia")
-            .insert([
-              {
-                fecha,
-                estado: "abierta",
-                dia_semana,
-              },
-            ])
+            .insert([{ fecha, estado: "abierta", dia_semana }])
             .select()
             .single();
 
         if (crearError) throw crearError;
-
         jornada = nuevaJornada;
       }
-
-      // ======================================
-      // VALIDAR DUPLICADO
-      // ======================================
 
       const { data: existe } =
         await supabase
@@ -171,36 +148,18 @@ const ModalMarcarEntrada = ({
           .eq("id_empleado", formData.id_empleado);
 
       if (existe.length > 0) {
-
-        setError(
-          "Este empleado ya tiene entrada registrada hoy"
-        );
-
+        setError("Ya tienes una entrada registrada para hoy.");
         setLoading(false);
         return;
       }
 
-      // ======================================
-      // REGISTRAR ENTRADA
-      // ======================================
-
       const asistenciaData = {
-
         id_empleado: formData.id_empleado,
-
         id_turno: formData.id_turno,
-
-        id_incidencia:
-          formData.id_incidencia || null,
-
-        estado_asistencia:
-          formData.estado_asistencia,
-
-        hora_entrada:
-          ahora.toISOString(),
-
-        id_jornada:
-          jornada.id_jornada,
+        id_incidencia: formData.id_incidencia || null,
+        estado_asistencia: formData.estado_asistencia,
+        hora_entrada: ahora.toISOString(),
+        id_jornada: jornada.id_jornada,
       };
 
       const { data, error } =
@@ -209,14 +168,8 @@ const ModalMarcarEntrada = ({
           .insert([asistenciaData])
           .select(`
             *,
-            empleado (
-              nombre,
-              apellido,
-              url_imagen
-            ),
-            turnos (
-              tipo_turno
-            )
+            empleado (nombre, apellido, url_imagen),
+            turnos (tipo_turno)
           `);
 
       if (error) throw error;
@@ -229,16 +182,9 @@ const ModalMarcarEntrada = ({
       handleClose();
 
     } catch (err) {
-
       console.error(err);
-
-      setError(
-        err.message ||
-        "Error registrando asistencia"
-      );
-
+      setError(err.message || "Error registrando asistencia");
     } finally {
-
       setLoading(false);
     }
   };
@@ -253,214 +199,104 @@ const ModalMarcarEntrada = ({
       centered
       size="lg"
     >
-
       <Modal.Header closeButton>
         <Modal.Title>
-
           <i className="bi bi-box-arrow-in-right me-2"></i>
-
           Marcar Entrada
-
         </Modal.Title>
       </Modal.Header>
 
       <Form onSubmit={handleSubmit}>
-
         <Modal.Body>
-
-          {error && (
-            <Alert variant="danger">
-              {error}
-            </Alert>
-          )}
-
+          {error && <Alert variant="danger">{error}</Alert>}
           <Row>
-
             <Col md={6}>
-
               <Form.Group className="mb-3">
-
-                <Form.Label>
-                  Empleado
-                </Form.Label>
-
+                <Form.Label>Empleado</Form.Label>
                 <Form.Select
                   name="id_empleado"
                   value={formData.id_empleado}
                   onChange={handleChange}
                   required
+                  disabled={rolUsuario === "empleado"}
                 >
-
-                  <option value="">
-                    Seleccione un empleado
-                  </option>
-
+                  <option value="">Seleccione un empleado</option>
                   {empleados.map((emp) => (
-                    <option
-                      key={emp.id_empleado}
-                      value={emp.id_empleado}
-                    >
+                    <option key={emp.id_empleado} value={emp.id_empleado}>
                       {emp.nombre} {emp.apellido}
                     </option>
                   ))}
-
                 </Form.Select>
-
+                {rolUsuario === "empleado" && (
+                    <Form.Text className="text-muted">
+                        Solo puedes marcar tu propia asistencia.
+                    </Form.Text>
+                )}
               </Form.Group>
-
             </Col>
-
             <Col md={6}>
-
               <Form.Group className="mb-3">
-
-                <Form.Label>
-                  Turno
-                </Form.Label>
-
+                <Form.Label>Turno</Form.Label>
                 <Form.Select
                   name="id_turno"
                   value={formData.id_turno}
                   onChange={handleChange}
                   required
                 >
-
-                  <option value="">
-                    Seleccione un turno
-                  </option>
-
+                  <option value="">Seleccione un turno</option>
                   {turnos.map((turno) => (
-                    <option
-                      key={turno.id_turno}
-                      value={turno.id_turno}
-                    >
+                    <option key={turno.id_turno} value={turno.id_turno}>
                       {turno.tipo_turno}
                     </option>
                   ))}
-
                 </Form.Select>
-
               </Form.Group>
-
             </Col>
-
           </Row>
-
           <Row>
-
             <Col md={6}>
-
               <Form.Group className="mb-3">
-
-                <Form.Label>
-                  Estado
-                </Form.Label>
-
+                <Form.Label>Estado</Form.Label>
                 <Form.Select
                   name="estado_asistencia"
                   value={formData.estado_asistencia}
                   onChange={handleChange}
                 >
-
-                  <option value="Presente">
-                    Presente
-                  </option>
-
-                  <option value="Tardanza">
-                    Tardanza
-                  </option>
-
-                  <option value="Permiso">
-                    Permiso
-                  </option>
-
-                  <option value="Ausente">
-                    Ausente
-                  </option>
-
+                  <option value="Presente">Presente</option>
+                  <option value="Tardanza">Tardanza</option>
+                  <option value="Permiso">Permiso</option>
+                  <option value="Ausente">Ausente</option>
                 </Form.Select>
-
               </Form.Group>
-
             </Col>
-
             <Col md={6}>
-
               <Form.Group className="mb-3">
-
-                <Form.Label>
-                  Incidencia
-                </Form.Label>
-
+                <Form.Label>Incidencia</Form.Label>
                 <Form.Select
                   name="id_incidencia"
                   value={formData.id_incidencia}
                   onChange={handleChange}
                 >
-
-                  <option value="">
-                    Sin incidencia
-                  </option>
-
+                  <option value="">Sin incidencia</option>
                   {incidencias.map((inc) => (
-                    <option
-                      key={inc.id_incidencia}
-                      value={inc.id_incidencia}
-                    >
+                    <option key={inc.id_incidencia} value={inc.id_incidencia}>
                       {inc.tipo_incidencia}
                     </option>
                   ))}
-
                 </Form.Select>
-
               </Form.Group>
-
             </Col>
-
           </Row>
-
         </Modal.Body>
-
         <Modal.Footer>
-
-          <Button
-            variant="secondary"
-            onClick={() => {
-              limpiarFormulario();
-              handleClose();
-            }}
-          >
+          <Button variant="secondary" onClick={() => { limpiarFormulario(); handleClose(); }}>
             Cancelar
           </Button>
-
-          <Button
-            type="submit"
-            variant="success"
-            disabled={loading}
-          >
-
-            {loading ? (
-              <>
-                <Spinner
-                  animation="border"
-                  size="sm"
-                  className="me-2"
-                />
-                Guardando...
-              </>
-            ) : (
-              <>
-                <i className="bi bi-save me-2"></i>
-                Registrar Entrada
-              </>
-            )}
-
+          <Button type="submit" variant="success" disabled={loading}>
+            {loading ? <><Spinner animation="border" size="sm" className="me-2" />Guardando...</> : <><i className="bi bi-save me-2"></i>Registrar Entrada</>}
           </Button>
-
         </Modal.Footer>
-
       </Form>
-
     </Modal>
   );
 };

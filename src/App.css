@@ -39,7 +39,7 @@
 /* IMAGEN */
 .chibi {
     position: absolute;
-    width: 70px;
+    width: 60px;
     cursor: pointer;
     pointer-events: auto; /* ahora SÍ recibe clicks */
     animation: caminar 12s linear infinite;

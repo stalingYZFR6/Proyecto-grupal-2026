@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Container, Row, Col, Card, ProgressBar, Badge, Spinner } from "react-bootstrap";
 import { supabase } from "../database/supabaseconfig";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
 const Inicio = () => {
     const [loading, setLoading] = useState(true);
@@ -12,6 +13,9 @@ const Inicio = () => {
     const [tardanzas, setTardanzas] = useState(0);
     const [ausencias, setAusencias] = useState(0);
     const [permisos, setPermisos] = useState(0);
+    const COLORES = ["#28a745", "#ffc107", "#dc3545", "#17a2b8"];
+    const [graficoAsistencias, setGraficoAsistencias] = useState([]);
+const [graficoIncidencias, setGraficoIncidencias] = useState([]);
 
     useEffect(() => {
         obtenerDashboard();
@@ -34,6 +38,19 @@ const Inicio = () => {
             const tardanzaCantidad = asistenciasData.filter(a => a.estado_asistencia === "Tardanza").length;
             const ausenciaCantidad = asistenciasData.filter(a => a.estado_asistencia === "Ausente").length;
             const permisosCantidad = asistenciasData.filter(a => a.estado_asistencia === "Permiso").length;
+             
+            setGraficoAsistencias([
+    { name: "Presente", value: presentes },
+    { name: "Tardanza", value: tardanzaCantidad },
+    { name: "Ausente", value: ausenciaCantidad },
+    { name: "Permiso", value: permisosCantidad },
+]);
+
+setGraficoIncidencias([
+    { name: "Tardanzas", value: tardanzaCantidad },
+    { name: "Ausencias", value: ausenciaCantidad },
+    { name: "Permisos", value: permisosCantidad },
+]);
 
             setTardanzas(tardanzaCantidad);
             setAusencias(ausenciaCantidad);
@@ -110,62 +127,60 @@ const Inicio = () => {
             </Row>
 
             {/* GRÁFICOS Y DETALLES */}
-            <Row className="g-4">
-                <Col lg={8}>
-                    <Card className="premium-card border-0 p-4 h-100">
-                        <h5 className="fw-bold mb-4">Rendimiento de Asistencia</h5>
-                        <div className="mb-4">
-                            <div className="d-flex justify-content-between mb-2">
-                                <span className="fw-medium">Asistencia General</span>
-                                <span className="fw-bold text-success">{porcentajeAsistencia}%</span>
-                            </div>
-                            <ProgressBar now={porcentajeAsistencia} variant="success" style={{ height: '8px' }} className="rounded-pill" />
-                        </div>
-                        <div className="mb-4">
-                            <div className="d-flex justify-content-between mb-2">
-                                <span className="fw-medium">Tardanzas</span>
-                                <span className="fw-bold text-warning">{porcentajeTardanza}%</span>
-                            </div>
-                            <ProgressBar now={porcentajeTardanza} variant="warning" style={{ height: '8px' }} className="rounded-pill" />
-                        </div>
-                        <div>
-                            <div className="d-flex justify-content-between mb-2">
-                                <span className="fw-medium">Ausencias</span>
-                                <span className="fw-bold text-danger">{porcentajeAusencias}%</span>
-                            </div>
-                            <ProgressBar now={porcentajeAusencias} variant="danger" style={{ height: '8px' }} className="rounded-pill" />
-                        </div>
-                    </Card>
-                </Col>
-                <Col lg={4}>
-                    <Card className="premium-card border-0 p-4 h-100">
-                        <h5 className="fw-bold mb-4">Distribución de Incidencias</h5>
-                        <div className="d-flex flex-column gap-3">
-                            <div className="d-flex align-items-center justify-content-between p-3 bg-premium-light rounded-3">
-                                <div className="d-flex align-items-center gap-3">
-                                    <div className="bg-warning p-2 rounded-circle" style={{ width: '10px', height: '10px' }}></div>
-                                    <span className="small fw-medium">Tardanzas</span>
-                                </div>
-                                <span className="fw-bold">{tardanzas}</span>
-                            </div>
-                            <div className="d-flex align-items-center justify-content-between p-3 bg-premium-light rounded-3">
-                                <div className="d-flex align-items-center gap-3">
-                                    <div className="bg-danger p-2 rounded-circle" style={{ width: '10px', height: '10px' }}></div>
-                                    <span className="small fw-medium">Ausencias</span>
-                                </div>
-                                <span className="fw-bold">{ausencias}</span>
-                            </div>
-                            <div className="d-flex align-items-center justify-content-between p-3 bg-premium-light rounded-3">
-                                <div className="d-flex align-items-center gap-3">
-                                    <div className="bg-info p-2 rounded-circle" style={{ width: '10px', height: '10px' }}></div>
-                                    <span className="small fw-medium">Permisos</span>
-                                </div>
-                                <span className="fw-bold">{permisos}</span>
-                            </div>
-                        </div>
-                    </Card>
-                </Col>
-            </Row>
+            <Row className="g-4 mb-5">
+
+    {/* 📈 Línea / barras de asistencias */}
+    <Col lg={8}>
+        <Card className="premium-card border-0 p-4">
+            <h5 className="fw-bold mb-4">Resumen de Asistencias</h5>
+
+            <ResponsiveContainer width="100%" height={320}>
+                <LineChart data={graficoAsistencias}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+
+                    <Line
+                        type="monotone"
+                        dataKey="value"
+                        stroke="#28a745"
+                        strokeWidth={3}
+                        dot={{ r: 5 }}
+                    />
+                </LineChart>
+            </ResponsiveContainer>
+        </Card>
+    </Col>
+
+    {/* 🥧 Pie chart incidencias */}
+    <Col lg={4}>
+        <Card className="premium-card border-0 p-4">
+            <h5 className="fw-bold mb-4">Distribución</h5>
+
+            <ResponsiveContainer width="100%" height={320}>
+                <PieChart>
+                    <Pie
+                        data={graficoIncidencias}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={100}
+                        label
+                    >
+                        {graficoIncidencias.map((_, i) => (
+                            <Cell key={i} fill={COLORES[i % COLORES.length]} />
+                        ))}
+                    </Pie>
+
+                    <Tooltip />
+                </PieChart>
+            </ResponsiveContainer>
+        </Card>
+    </Col>
+
+</Row>
         </Container>
     );
 };

@@ -1,59 +1,130 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-
-@layer base {
-  body {
-    font-family: 'Inter', sans-serif;
-    @apply bg-[#0f172a] text-slate-100;
-  }
-  
-  /* Scrollbar personalizado */
-  ::-webkit-scrollbar {
-    @apply w-2 h-2;
-  }
-  
-  ::-webkit-scrollbar-track {
-    @apply bg-slate-800/50;
-  }
-  
-  ::-webkit-scrollbar-thumb {
-    @apply bg-slate-600/50 rounded-full;
-  }
-  
-  ::-webkit-scrollbar-thumb:hover {
-    @apply bg-slate-500/50;
-  }
+:root {
+  --bg-main: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-light: #f1f5f9;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --accent: #0f172a;
+  --border-color: #e2e8f0;
+  --glass-bg: rgba(255, 255, 255, 0.7);
 }
 
-/* Clase para backdrop blur suave */
-.backdrop-blur-sm {
+[data-bs-theme='dark'] {
+  --bg-main: #0f172a;
+  --bg-card: #1e293b;
+  --bg-light: #334155;
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  --accent: #38bdf8;
+  --border-color: #334155;
+  --glass-bg: rgba(15, 23, 42, 0.8);
+}
+
+/* Corrección de clases estáticas de Bootstrap para modo oscuro */
+[data-bs-theme='dark'] .bg-light,
+[data-bs-theme='dark'] .bg-body-tertiary {
+  background-color: var(--bg-light) !important;
+  color: var(--text-main) !important;
+}
+
+[data-bs-theme='dark'] .bg-white {
+  background-color: var(--bg-card) !important;
+  color: var(--text-main) !important;
+}
+
+[data-bs-theme='dark'] .text-muted {
+  color: var(--text-muted) !important;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  letter-spacing: -0.01em;
+}
+
+.premium-card {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-main) !important;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.bg-premium-light {
+  background-color: var(--bg-light) !important;
+  color: var(--text-main) !important;
+}
+
+.text-premium-main {
+  color: var(--text-main) !important;
+}
+
+.text-premium-muted {
+  color: var(--text-muted) !important;
+}
+
+.premium-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.glass-nav {
+  background: var(--glass-bg) !important;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-color);
 }
 
-/* Sombra personalizada */
-.shadow-xl {
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -6px rgba(0, 0, 0, 0.05);
+.btn-premium-primary {
+  background-color: var(--accent);
+  color: white !important;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 10px;
+  font-weight: 600;
 }
 
-/* Transiciones suaves */
-.transition-all {
-  transition-property: all;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 200ms;
+/* --- ESTILOS DE BÚSQUEDA CORREGIDOS --- */
+.search-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
 }
 
-.transition-transform {
-  transition-property: transform;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 300ms;
+.search-icon {
+  position: absolute;
+  left: 16px;
+  color: var(--text-muted);
+  pointer-events: none;
+  z-index: 5;
+  font-size: 1.1rem;
 }
 
-.transition-opacity {
-  transition-property: opacity;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 300ms;
+.search-input {
+  padding-left: 48px !important; /* Espacio para el icono */
+  border-radius: 12px !important;
+  border: 1px solid var(--border-color) !important;
+  background: var(--bg-card) !important;
+  color: var(--text-main) !important;
+  height: 48px;
+  width: 100%;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
+
+.search-input:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.1) !important;
+  outline: none;
+}
+
+.search-input::placeholder {
+  color: var(--text-muted) !important;
+  opacity: 0.7;
+}
+/* -------------------------------------- */

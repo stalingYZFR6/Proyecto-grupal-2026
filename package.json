@@ -12,14 +12,14 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
-    "@supabase/supabase-js": "^2.99.2",
+    "@supabase/supabase-js": "^2.45.1",
     "bootstrap": "^5.3.3",
     "bootstrap-icons": "^1.11.3",
     "react": "^19.0.0",
     "react-bootstrap": "^2.10.4",
     "react-dom": "^19.0.0",
     "react-router-dom": "^6.26.1",
-    "recharts": "2.15.1",
+    "recharts": "^2.12.7",
     "sweetalert2": "^11.12.4"
   },
   "devDependencies": {

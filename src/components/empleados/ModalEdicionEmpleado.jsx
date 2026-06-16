@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Modal, Form, Button, Image } from "react-bootstrap";
 
 const ModalEdicionEmpleado = ({
@@ -11,6 +11,7 @@ const ModalEdicionEmpleado = ({
 }) => {
 
     const [deshabilitado, setDeshabilitado] = useState(false);
+    const inputImagenRef = useRef(null);
 
     // MANEJAR IMAGEN DESDE ARCHIVO
     const manejarImagen = (e) => {
@@ -74,34 +75,44 @@ const ModalEdicionEmpleado = ({
                 <Form>
                     {/* FOTO */}
                     <div className="text-center mb-4">
-                        <Image
-                            src={
-                                empleadoEditar?.preview_imagen
-                                    ? empleadoEditar.preview_imagen
-                                    : empleadoEditar?.url_imagen &&
-                                        !empleadoEditar.url_imagen.startsWith("blob:")
-                                        ? empleadoEditar.url_imagen
-                                        : "https://cdn-icons-png.flaticon.com/512/149/149071.png"
-                            }
-                            roundedCircle
-                            width={120}
-                            height={120}
-                            className="border shadow-sm mb-2"
-                            style={{ objectFit: "cover" }}
-                        />
-                        <div className="text-muted x-small mb-3">
+                        <div 
+                            className="d-inline-block position-relative"
+                            onDoubleClick={() => inputImagenRef.current?.click()}
+                            style={{ cursor: "pointer" }}
+                            title="Doble clic para buscar archivo, Un clic y Ctrl+V para pegar"
+                        >
+                            <Image
+                                src={
+                                    empleadoEditar?.preview_imagen
+                                        ? empleadoEditar.preview_imagen
+                                        : empleadoEditar?.url_imagen &&
+                                            !empleadoEditar.url_imagen.startsWith("blob:")
+                                            ? empleadoEditar.url_imagen
+                                            : "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                                }
+                                roundedCircle
+                                width={120}
+                                height={120}
+                                className="border shadow-sm mb-2 hover-opacity"
+                                style={{ objectFit: "cover", transition: "opacity 0.2s" }}
+                            />
+                        </div>
+                        <div className="text-muted x-small mb-1 mt-1">
                             <i className="bi bi-info-circle me-1"></i>
-                            Puedes seleccionar un archivo o <strong>pegar una imagen (Ctrl+V)</strong> aquí.
+                            <strong>Doble clic</strong> sobre la foto para buscar archivo de tu equipo.
+                        </div>
+                        <div className="text-muted x-small mb-3">
+                            O haz un <strong>clic</strong> en el formulario y presiona <strong>Ctrl+V</strong> para pegar una imagen copiada.
                         </div>
 
-                        <Form.Group className="mt-2">
-                            <Form.Control
-                                type="file"
-                                accept="image/*"
-                                onChange={manejarImagen}
-                                className="w-50 mx-auto"
-                            />
-                        </Form.Group>
+                        {/* Input de archivo oculto para control por doble clic */}
+                        <input
+                            type="file"
+                            ref={inputImagenRef}
+                            accept="image/*"
+                            onChange={manejarImagen}
+                            className="d-none"
+                        />
                     </div>
 
                     <div className="row">

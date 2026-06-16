@@ -66,6 +66,7 @@ const NavbarModaExpress = () => {
         { path: "/incidencias", label: "Incidencias", icon: "bi-exclamation-circle" },
         { path: "/asistencias", label: "Asistencia", icon: "bi-calendar-check" },
         { path: "/turnos", label: "Turnos", icon: "bi-clock" },
+        { path: "/usuarios", label: "Usuarios", icon: "bi-person-gear" },
     ];
 
     if (location.pathname === "/login") return null;

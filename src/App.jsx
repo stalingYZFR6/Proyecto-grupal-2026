@@ -8,6 +8,7 @@ import Incidencias from './views/Incidencias';
 import Catalogo from "./views/Catalogo";
 import Asistencias from "./views/RegistroAsistencia.jsx";
 import Turnos from './views/Turnos';
+import Usuarios from './views/Usuarios';
 import Login from "./views/Login";
 import RutaProtegida from "./components/rutas/RutaProtegida";
 import Pagina404 from "./views/Pagina404";
@@ -31,6 +32,7 @@ const App = () => {
           <Route path="/catalogo" element={<RutaProtegida><Catalogo /></RutaProtegida>} />
           <Route path="/asistencias" element={<RutaProtegida><Asistencias /></RutaProtegida>} />
           <Route path="/turnos" element={<RutaProtegida><Turnos /></RutaProtegida>} />
+          <Route path="/usuarios" element={<RutaProtegida><Usuarios /></RutaProtegida>} />
 
           {/* 404 */}
           <Route path="*" element={<Pagina404 />} />

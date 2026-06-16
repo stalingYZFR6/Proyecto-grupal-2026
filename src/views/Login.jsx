@@ -13,42 +13,26 @@ const Login = () => {
     const iniciarSesion = async () => {
         try {
             setError(null);
-            const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+            const { data, error } = await supabase.auth.signInWithPassword({
                 email: usuario,
                 password: contrasena,
             });
 
-            if (authError) {
-                if (authError.message?.toLowerCase().includes("email not confirmed") || authError.status === 400) {
-                    setError("El correo electrónico no ha sido confirmado.");
+            if (error) {
+                // Capturar específicamente si el correo no ha sido confirmado
+                if (error.message?.toLowerCase().includes("email not confirmed") || error.status === 400) {
+                    setError("El correo electrónico no ha sido confirmado. Por favor, revisa tu bandeja de entrada para verificar tu cuenta.");
                 } else {
-                    setError("Credenciales no válidas.");
+                    setError("Credenciales no válidas. Por favor, verifica tus datos.");
                 }
                 return;
             }
 
-            if (authData.user) {
-                // Buscamos el perfil en nuestra tabla de usuarios
-                const { data: perfil, error: perfilError } = await supabase
-                    .from("usuarios")
-                    .select("rol, id_empleado")
-                    .eq("id_auth", authData.user.id)
-                    .maybeSingle();
-
-                if (perfilError) throw perfilError;
-
-                const datosUsuario = {
-                    email: usuario,
-                    rol: perfil?.rol || "empleado",
-                    id_empleado: perfil?.id_empleado || null,
-                    id_auth: authData.user.id
-                };
-
-                localStorage.setItem("usuario-supabase", JSON.stringify(datosUsuario));
+            if (data.user) {
+                localStorage.setItem("usuario-supabase", usuario);
                 navegar("/");
             }
         } catch (err) {
-            console.error(err);
             setError("Error de conexión con el servidor.");
         }
     };
@@ -64,22 +48,31 @@ const Login = () => {
         <div className="vh-100 d-flex align-items-center justify-content-center overflow-hidden" style={{ background: "var(--bg-main)" }}>
             <Container fluid className="p-0 h-100">
                 <Row className="g-0 h-100">
+                    {/* Lado Izquierdo: Decorativo */}
                     <Col lg={7} className="d-none d-lg-flex align-items-center justify-content-center position-relative" 
                          style={{ 
                              background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
                              overflow: "hidden"
                          }}>
+                        <div className="position-absolute w-100 h-100" style={{ opacity: 0.1 }}>
+                            <div className="position-absolute" style={{ top: '-10%', left: '-10%', width: '40%', height: '40%', borderRadius: '50%', background: 'white', filter: 'blur(100px)' }}></div>
+                            <div className="position-absolute" style={{ bottom: '-10%', right: '-10%', width: '40%', height: '40%', borderRadius: '50%', background: '#38bdf8', filter: 'blur(100px)' }}></div>
+                        </div>
                         <div className="text-center text-white p-5 position-relative z-1">
                             <h1 className="display-3 fw-bold mb-4">AssisTech</h1>
-                            <p className="fs-4 fw-light opacity-75">La nueva era en gestión de talento humano inteligente.</p>
+                            <p className="fs-4 fw-light opacity-75">La nueva era en gestión de talento humano y control de asistencia inteligente.</p>
                         </div>
                     </Col>
 
+                    {/* Lado Derecho: Formulario */}
                     <Col lg={5} xs={12} className="d-flex align-items-center justify-content-center" style={{ background: "var(--bg-card)" }}>
                         <div className="w-100 px-4 px-md-5" style={{ maxWidth: "480px" }}>
                             <div className="text-center mb-5">
-                                <h2 className="fw-bold text-premium-main">Bienvenido</h2>
-                                <p className="text-premium-muted">Ingresa para acceder al panel</p>
+                                <div className="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 rounded-4 p-3 mb-4">
+                                    <i className="bi bi-shield-lock-fill text-primary fs-2"></i>
+                                </div>
+                                <h2 className="fw-bold text-premium-main">Bienvenido de nuevo</h2>
+                                <p className="text-premium-muted">Ingresa tus credenciales para acceder al panel</p>
                             </div>
                             
                             <FormularioLogin
@@ -90,6 +83,10 @@ const Login = () => {
                                 setContrasena={setContrasena}
                                 iniciarSesion={iniciarSesion}
                             />
+                            
+                            <p className="text-center mt-5 text-premium-muted small">
+                                &copy; 2026 AssisTech Enterprise. Todos los derechos reservados.
+                            </p>
                         </div>
                     </Col>
                 </Row>

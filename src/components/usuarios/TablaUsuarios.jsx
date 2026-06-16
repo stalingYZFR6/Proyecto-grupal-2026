@@ -1,84 +1,76 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Table, Spinner, Button, Badge } from "react-bootstrap";
 
-const TablaUsuarios = ({
-  usuarios,
-  cargando,
-  setMostrarModalEditar,
-  setMostrarModalEliminar,
-  setUsuarioSeleccionado
-}) => {
-  if (cargando) {
-    return (
-      <div className="text-center my-5">
-        <Spinner animation="border" variant="primary" role="status">
-          <span className="visually-hidden">Cargando...</span>
-        </Spinner>
-      </div>
-    );
-  }
+const TablaUsuarios = ({ usuarios, cargando, setMostrarModalEditar, setMostrarModalEliminar, setUsuarioSeleccionado }) => {
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    if (usuarios) {
+      setLoading(false);
+    }
+  }, [usuarios]);
+
+  const userData = JSON.parse(localStorage.getItem("usuario-supabase") || "{}");
+  const isAdmin = userData.rol === "admin";
 
   return (
-    <Table striped bordered hover responsive className="align-middle text-center">
-      <thead className="table-dark">
-        <tr>
-          <th>ID</th>
-          <th>Empleado</th>
-          <th>Correo / Login</th>
-          <th>Rol Aplicación</th>
-          <th>Estado</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        {usuarios.map((usuario) => (
-          <tr key={usuario.id_usuario}>
-            <td>#{usuario.id_usuario}</td>
-            <td>
-              {usuario.empleado ? (
-                <strong>{usuario.empleado.nombre} {usuario.empleado.apellido}</strong>
-              ) : (
-                <span className="text-muted">Sin empleado</span>
-              )}
-            </td>
-            <td>{usuario.empleado?.correo || usuario.login || "—"}</td>
-            <td>
-              <Badge bg="info" className="text-capitalize">
-                {usuario.rol}
-              </Badge>
-            </td>
-            <td>
-              <Badge bg={usuario.activo ? "success" : "danger"}>
-                {usuario.activo ? "Activo" : "Inactivo"}
-              </Badge>
-            </td>
-            <td>
-              <Button
-                variant="outline-warning"
-                size="sm"
-                className="me-2"
-                onClick={() => {
-                  setUsuarioSeleccionado(usuario);
-                  setMostrarModalEditar(true);
-                }}
-              >
-                <i className="bi bi-pencil"></i> Editar
-              </Button>
-              <Button
-                variant="outline-danger"
-                size="sm"
-                onClick={() => {
-                  setUsuarioSeleccionado(usuario);
-                  setMostrarModalEliminar(true);
-                }}
-              >
-                <i className="bi bi-trash"></i> Eliminar
-              </Button>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </Table>
+    <>
+      {loading ? (
+        <div className="text-center py-4">
+          <h4>Cargando empleados...</h4>
+          <Spinner animation="border" variant="primary" role="status" />
+        </div>
+      ) : usuarios.length === 0 ? (
+        <div className="text-center py-5 text-muted">
+          <i className="bi bi-people display-1 mb-3"></i>
+          <h5>No hay empleados registrados</h5>
+          <p>Agrega un nuevo empleado usando el botón superior.</p>
+        </div>
+      ) : (
+        <Table striped bordered hover responsive size="sm" className="align-middle">
+          <thead className="table-dark">
+            <tr>
+              <th>ID</th>
+              <th>Foto</th>
+              <th>Nombre Completo</th>
+              <th>Cédula</th>
+              <th className="d-none d-lg-table-cell"> Correo </th>
+              <th className="d-none d-md-table-cell"> Teléfono </th>
+              <th className="d-none d-xl-table-cell"> Dirección </th>
+              <th className="text-center"> Acciones </th>
+            </tr>
+          </thead>
+          <tbody>
+            {usuarios.map((empleado) => (
+              <tr key={empleado.id_empleado}>
+                <td>#{empleado.id_empleado}</td>
+                <td className="text-center">
+                  <Image src={empleado.url_imagen && !empleado.url_imagen.startsWith("blob:") ? empleado.url_imagen : "https://cdn-icons-png.flaticon.com/512/149/149071.png"} roundedCircle width={50} height={50} className="border shadow-sm" style={{ objectFit: "cover" }} />
+                </td>
+                <td> <strong> {empleado.nombre} {empleado.apellido} </strong> </td>
+                <td> {empleado.cedula} </td>
+                <td className="d-none d-lg-table-cell"> {empleado.correo || ( <span className="text-muted"> — </span> )} </td>
+                <td className="d-none d-md-table-cell"> {empleado.telefono || ( <span className="text-muted"> — </span> )} </td>
+                <td className="d-none d-xl-table-cell text-truncate" style={{ maxWidth: "200px" }}>
+                  {empleado.direccion || ( <span className="text-muted"> — </span> )}
+                </td>
+                <td className="text-center">
+                  {isAdmin && (
+                    <Button variant="outline-warning" size="sm" className="m-1" onClick={() => abrirModalEdicion(empleado)} title="Editar empleado" >
+                      <i className="bi bi-pencil"></i>
+                    </Button>
+                  )}
+                  {isAdmin && (
+                    <Button variant="outline-danger" size="sm" className="m-1" onClick={() => abrirModalEliminacion(empleado)} title="Eliminar empleado" >
+                      <i className="bi bi-trash"></i>
+                    </Button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      </>);
+    </>
   );
 };
 

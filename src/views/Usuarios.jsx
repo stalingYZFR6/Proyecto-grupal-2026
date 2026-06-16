@@ -76,10 +76,34 @@ const Usuarios = () => {
     obtenerEmpleados();
   }, []);
 
-  // --- Manejo de inputs ---
+  // --- Manejo de inputs con autocompletado inteligente ---
   const manejarCambioInput = (e) => {
     const { name, value } = e.target;
-    setNuevoUsuario((prev) => ({ ...prev, [name]: value }));
+
+    if (name === "id_empleado") {
+      if (value === "") {
+        // Si se limpia la selección, limpiamos el empleado y el login
+        setNuevoUsuario((prev) => ({
+          ...prev,
+          id_empleado: "",
+          login: ""
+        }));
+      } else {
+        // Buscamos el empleado seleccionado para extraer su correo
+        const empSeleccionado = empleados.find(
+          (emp) => emp.id_empleado === parseInt(value)
+        );
+        const correoAuto = empSeleccionado?.correo || "";
+
+        setNuevoUsuario((prev) => ({
+          ...prev,
+          id_empleado: value,
+          login: correoAuto // Se carga automáticamente pero sigue siendo editable
+        }));
+      }
+    } else {
+      setNuevoUsuario((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   // --- Agregar usuario ---

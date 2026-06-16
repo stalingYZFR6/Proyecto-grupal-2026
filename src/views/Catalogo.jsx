@@ -7,29 +7,14 @@ const Catalogo = () => {
     const [empleados, setEmpleados] = useState([]);
     const [busqueda, setBusqueda] = useState("");
     const [cargando, setCargando] = useState(true);
-    const [rolUsuario, setRolUsuario] = useState("empleado");
-    const [idEmpleadoSesion, setIdEmpleadoSesion] = useState(null);
 
     const obtenerEmpleados = async () => {
         try {
             setCargando(true);
-            const rol = localStorage.getItem("usuario-rol");
-            const idEmp = localStorage.getItem("usuario-id-empleado");
-            
-            setRolUsuario(rol || "empleado");
-            setIdEmpleadoSesion(idEmp);
-
-            let query = supabase
+            const { data, error } = await supabase
                 .from("empleado")
                 .select("*")
                 .order("nombre", { ascending: true });
-
-            // FILTRAR SI ES EMPLEADO
-            if (rol === "empleado" && idEmp) {
-                query = query.eq("id_empleado", idEmp);
-            }
-
-            const { data, error } = await query;
 
             if (error) throw error;
             setEmpleados(data || []);
@@ -59,29 +44,23 @@ const Catalogo = () => {
                                 <i className="bi bi-journal-bookmark-fill text-primary fs-3"></i>
                             </div>
                             <div>
-                                <h2 className="fw-bold mb-0">
-                                    {rolUsuario === "empleado" ? "Mi Perfil" : "Catálogo de Personal"}
-                                </h2>
-                                <p className="text-muted mb-0">
-                                    {rolUsuario === "empleado" ? "Información personal del colaborador" : "Directorio visual de todos los colaboradores"}
-                                </p>
+                                <h2 className="fw-bold mb-0">Catálogo de Personal</h2>
+                                <p className="text-muted mb-0">Directorio visual de todos los colaboradores</p>
                             </div>
                         </div>
                     </Col>
-                    {rolUsuario !== "empleado" && (
-                        <Col md={6}>
-                            <div className="search-container">
-                                <i className="bi bi-search search-icon"></i>
-                                <Form.Control
-                                    type="text"
-                                    placeholder="Buscar por nombre o identificación..."
-                                    className="search-input shadow-sm"
-                                    value={busqueda}
-                                    onChange={(e) => setBusqueda(e.target.value)}
-                                />
-                            </div>
-                        </Col>
-                    )}
+                    <Col md={6}>
+                        <div className="search-container">
+                            <i className="bi bi-search search-icon"></i>
+                            <Form.Control
+                                type="text"
+                                placeholder="Buscar por nombre o identificación..."
+                                className="search-input shadow-sm"
+                                value={busqueda}
+                                onChange={(e) => setBusqueda(e.target.value)}
+                            />
+                        </div>
+                    </Col>
                 </Row>
             </div>
 
@@ -94,7 +73,7 @@ const Catalogo = () => {
                 <>
                     <div className="mb-4">
                         <Badge bg="primary" className="bg-opacity-10 text-primary border-0 rounded-pill px-4 py-2 fs-6 fw-semibold">
-                            {empleadosFiltrados.length} {empleadosFiltrados.length === 1 ? "Registro" : "Registros"}
+                            {empleadosFiltrados.length} Colaboradores Registrados
                         </Badge>
                     </div>
 

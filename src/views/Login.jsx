@@ -19,6 +19,7 @@ const Login = () => {
             });
 
             if (error) {
+                // Capturar específicamente si el correo no ha sido confirmado
                 if (error.message?.toLowerCase().includes("email not confirmed") || error.status === 400) {
                     setError("El correo electrónico no ha sido confirmado. Por favor, revisa tu bandeja de entrada para verificar tu cuenta.");
                 } else {
@@ -28,23 +29,7 @@ const Login = () => {
             }
 
             if (data.user) {
-                // OBTENER ROL E ID DE EMPLEADO DE LA TABLA PÚBLICA
-                const { data: perfil, error: errorPerfil } = await supabase
-                    .from("usuarios")
-                    .select("rol, id_empleado")
-                    .eq("id_auth", data.user.id)
-                    .single();
-
-                if (errorPerfil) {
-                    console.error("Error obteniendo perfil:", errorPerfil);
-                    setError("No se pudo obtener el perfil de usuario.");
-                    return;
-                }
-
                 localStorage.setItem("usuario-supabase", usuario);
-                localStorage.setItem("usuario-rol", perfil.rol);
-                localStorage.setItem("usuario-id-empleado", perfil.id_empleado);
-                
                 navegar("/");
             }
         } catch (err) {
@@ -63,6 +48,7 @@ const Login = () => {
         <div className="vh-100 d-flex align-items-center justify-content-center overflow-hidden" style={{ background: "var(--bg-main)" }}>
             <Container fluid className="p-0 h-100">
                 <Row className="g-0 h-100">
+                    {/* Lado Izquierdo: Decorativo */}
                     <Col lg={7} className="d-none d-lg-flex align-items-center justify-content-center position-relative" 
                          style={{ 
                              background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
@@ -78,6 +64,7 @@ const Login = () => {
                         </div>
                     </Col>
 
+                    {/* Lado Derecho: Formulario */}
                     <Col lg={5} xs={12} className="d-flex align-items-center justify-content-center" style={{ background: "var(--bg-card)" }}>
                         <div className="w-100 px-4 px-md-5" style={{ maxWidth: "480px" }}>
                             <div className="text-center mb-5">

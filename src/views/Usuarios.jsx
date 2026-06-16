@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Button, Badge } from "react-bootstrap";
 import Swal from "sweetalert2";
 import { supabase } from "../database/supabaseconfig";
+
 import TablaUsuarios from "../components/usuarios/TablaUsuarios";
 import CuadroBusquedas from "../components/busquedas/CuadroBusquedas";
 import ModalRegistroUsuario from "../components/usuarios/ModalRegistroUsuario";
@@ -13,20 +14,39 @@ const Usuarios = () => {
   const [usuariosFiltrados, setUsuariosFiltrados] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [textoBusqueda, setTextoBusqueda] = useState("");
+
   const [empleados, setEmpleados] = useState([]);
   const [mostrarModalAgregar, setMostrarModalAgregar] = useState(false);
   const [mostrarModalEditar, setMostrarModalEditar] = useState(false);
   const [mostrarModalEliminar, setMostrarModalEliminar] = useState(false);
-  const [nuevoUsuario, setNuevoUsuario] = useState({ id_empleado: "", login: "", password: "", rol_aplicacion: "" });
-  const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null);
-  const userData = JSON.parse(localStorage.getItem("usuario-supabase") || "{}");
-  const isAdmin = userData.rol === "admin";
 
+  const [nuevoUsuario, setNuevoUsuario] = useState({
+    id_empleado: "",
+    login: "",
+    password: "",
+    rol_aplicacion: ""
+  });
+
+  const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null);
+
+  // --- Obtener usuarios y empleados ---
   const obtenerUsuarios = async () => {
     try {
       setCargando(true);
-      const { data, error } = await supabase.from("usuarios").select(`*, empleado ( nombre, apellido, correo )`).order("id_usuario", { ascending: true });
+      const { data, error } = await supabase
+        .from("usuarios")
+        .select(`
+          *,
+          empleado (
+            nombre,
+            apellido,
+            correo
+          )
+        `)
+        .order("id_usuario", { ascending: true });
+
       if (error) throw error;
+
       setUsuarios(data || []);
       setUsuariosFiltrados(data || []);
     } catch (error) {
@@ -39,7 +59,11 @@ const Usuarios = () => {
 
   const obtenerEmpleados = async () => {
     try {
-      const { data, error } = await supabase.from("empleado").select("*").order("nombre", { ascending: true });
+      const { data, error } = await supabase
+        .from("empleado")
+        .select("*")
+        .order("nombre", { ascending: true });
+
       if (error) throw error;
       setEmpleados(data || []);
     } catch (error) {
@@ -52,56 +76,91 @@ const Usuarios = () => {
     obtenerEmpleados();
   }, []);
 
+  // --- Manejo de inputs con autocompletado inteligente ---
   const manejarCambioInput = (e) => {
     const { name, value } = e.target;
+
     if (name === "id_empleado") {
       if (value === "") {
-        setNuevoUsuario((prev) => ({ ...prev, id_empleado: "", login: "" }));
+        setNuevoUsuario((prev) => ({
+          ...prev,
+          id_empleado: "",
+          login: ""
+        }));
       } else {
-        const empSeleccionado = empleados.find(emp => emp.id_empleado === parseInt(value));
+        const empSeleccionado = empleados.find(
+          (emp) => emp.id_empleado === parseInt(value)
+        );
         const correoAuto = empSeleccionado?.correo || "";
-        setNuevoUsuario({ ...prev, id_empleado: value, login: correoAuto });
-      } else {
-        setNuevoUsuario({ ...nuevoUsuario, [name]: value });
+
+        setNuevoUsuario((prev) => ({
+          ...prev,
+          id_empleado: value,
+          login: correoAuto
+        }));
       }
+    } else {
+      setNuevoUsuario((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
+  // --- Agregar usuario ---
   const agregarUsuario = async () => {
-    if (!isAdmin) {
-      Swal.fire("Advertencia", "Solo los administradores pueden registrar nuevos usuarios.", "warning");
-      return;
-    }
     if (!nuevoUsuario.id_empleado || !nuevoUsuario.login || !nuevoUsuario.password || !nuevoUsuario.rol_aplicacion) {
       Swal.fire("Advertencia", "Por favor complete todos los campos.", "warning");
       return;
     }
+
     try {
+      // Llamar a la función RPC segura que crea el usuario confirmado e inserta en public.usuarios
       const { error } = await supabase.rpc("crear_usuario_confirmado", {
         p_email: nuevoUsuario.login,
         p_password: nuevoUsuario.password,
         p_id_empleado: parseInt(nuevoUsuario.id_empleado),
-        p_rol: nuevoUsuario.rol_aplicacion,
+        p_rol: nuevoUsuario.rol_aplicacion
       });
+
       if (error) throw error;
-      Swal.fire({ icon: "success", title: "Usuario Creado", text: "El usuario ha sido registrado y activado inmediatamente.", timer: 2000, showConfirmButton: false });
+
+      Swal.fire({
+        icon: "success",
+        title: "Usuario Creado",
+        text: "El usuario ha sido registrado y activado inmediatamente.",
+        timer: 2000,
+        showConfirmButton: false
+      });
+
       setNuevoUsuario({ id_empleado: "", login: "", password: "", rol_aplicacion: "" });
       setMostrarModalAgregar(false);
       await obtenerUsuarios();
-    } catch (err) {
-      console.error("Error al agregar usuario:", err);
-      Swal.fire("Error", err.message || "No se pudo registrar el usuario.", "error");
+    } catch (error) {
+      console.error("Error al agregar usuario:", error);
+      Swal.fire("Error", error.message || "No se pudo registrar el usuario.", "error");
     }
   };
 
+  // --- Editar usuario ---
   const guardarCambios = async (usuarioEdit) => {
     try {
-      const { error } = await supabase.from("usuarios").update({
-        id_empleado: parseInt(usuarioEdit.id_empleado),
-        rol: usuarioEdit.rol,
-        activo: usuarioEdit.activo,
-      }).eq("id_usuario", usuarioEdit.id_usuario);
+      const { error } = await supabase
+        .from("usuarios")
+        .update({
+          id_empleado: parseInt(usuarioEdit.id_empleado),
+          rol: usuarioEdit.rol,
+          activo: usuarioEdit.activo
+        })
+        .eq("id_usuario", usuarioEdit.id_usuario);
+
       if (error) throw error;
-      Swal.fire({ icon: "success", title: "Usuario Actualizado", text: "Los cambios se guardaron correctamente.", timer: 1500, showConfirmButton: false });
+
+      Swal.fire({
+        icon: "success",
+        title: "Usuario Actualizado",
+        text: "Los cambios se guardaron correctamente.",
+        timer: 1500,
+        showConfirmButton: false
+      });
+
       await obtenerUsuarios();
       setMostrarModalEditar(false);
     } catch (error) {
@@ -110,11 +169,23 @@ const Usuarios = () => {
     }
   };
 
+  // --- Eliminar usuario completo (Pública + Auth) ---
   const eliminarUsuario = async (id) => {
     try {
-      const { error } = await supabase.rpc("eliminar_usuario_completo", { p_id_usuario: id });
+      const { error } = await supabase.rpc("eliminar_usuario_completo", {
+        p_id_usuario: id
+      });
+
       if (error) throw error;
-      Swal.fire({ icon: "success", title: "Usuario Eliminado", text: "El registro de acceso y su cuenta de autenticación han sido eliminados por completo.", timer: 1500, showConfirmButton: false });
+
+      Swal.fire({
+        icon: "success",
+        title: "Usuario Eliminado",
+        text: "El registro de acceso y su cuenta de autenticación han sido eliminados por completo.",
+        timer: 1500,
+        showConfirmButton: false
+      });
+
       await obtenerUsuarios();
     } catch (error) {
       console.error("Error al eliminar usuario:", error);
@@ -122,15 +193,25 @@ const Usuarios = () => {
     }
   };
 
+  // --- Busqueda ---
   const manejarCambioBusqueda = (e) => {
     const texto = e.target.value.toLowerCase();
     setTextoBusqueda(texto);
+    
     const filtrados = usuarios.filter((u) => {
-      const nombreCompleto = u.empleado ? `${u.empleado.nombre} ${u.empleado.apellido}`.toLowerCase() : "";
+      const nombreCompleto = u.empleado 
+        ? `${u.empleado.nombre} ${u.empleado.apellido}`.toLowerCase() 
+        : "";
       const correo = u.empleado?.correo?.toLowerCase() || u.login?.toLowerCase() || "";
       const rol = u.rol?.toLowerCase() || "";
-      return (nombreCompleto.includes(texto) || correo.includes(texto) || rol.includes(texto));
+      
+      return (
+        nombreCompleto.includes(texto) ||
+        correo.includes(texto) ||
+        rol.includes(texto)
+      );
     });
+    
     setUsuariosFiltrados(filtrados);
   };
 
@@ -150,16 +231,32 @@ const Usuarios = () => {
             </div>
           </Col>
           <Col lg={6} className="text-lg-end">
-            {isAdmin && (
-              <Button onClick={() => setMostrarModalAgregar(true)} className="btn-premium-primary shadow-sm">
-                <i className="bi bi-person-plus-fill me-2"></i> Nuevo Usuario
-              </Button>
-            )}
+            <Button
+              onClick={() => setMostrarModalAgregar(true)}
+              className="btn-premium-primary shadow-sm"
+            >
+              <i className="bi bi-person-plus-fill me-2"></i>
+              Nuevo Usuario
+            </Button>
           </Col>
         </Row>
       </div>
 
-      <CuadroBusquedas textoBusqueda={textoBusqueda} manejarCambioBusqueda={manejarCambioBusqueda} />
+      <div className="mb-4">
+        <Row className="g-3 align-items-center">
+          <Col md={8} lg={6}>
+            <CuadroBusquedas
+              textoBusqueda={textoBusqueda}
+              manejarCambioBusqueda={manejarCambioBusqueda}
+            />
+          </Col>
+          <Col md={4} lg={6} className="text-md-end">
+            <Badge bg="primary" className="bg-opacity-10 text-primary border-0 rounded-pill px-4 py-2 fs-6 fw-semibold">
+              {usuariosFiltrados.length} Usuarios
+            </Badge>
+          </Col>
+        </Row>
+      </div>
 
       <TablaUsuarios
         usuarios={usuariosFiltrados}
@@ -167,6 +264,15 @@ const Usuarios = () => {
         setMostrarModalEditar={setMostrarModalEditar}
         setMostrarModalEliminar={setMostrarModalEliminar}
         setUsuarioSeleccionado={setUsuarioSeleccionado}
+      />
+
+      <ModalRegistroUsuario
+        mostrarModal={mostrarModalAgregar}
+        setMostrarModal={setMostrarModalAgregar}
+        nuevoUsuario={nuevoUsuario}
+        manejarCambioInput={manejarCambioInput}
+        agregarUsuario={agregarUsuario}
+        empleados={empleados}
       />
 
       {usuarioSeleccionado && (
@@ -178,22 +284,15 @@ const Usuarios = () => {
             guardarCambios={guardarCambios}
             empleados={empleados}
           />
+
           <ModalEliminarUsuario
             mostrarModal={mostrarModalEliminar}
             setMostrarModal={setMostrarModalEliminar}
             usuarioSeleccionado={usuarioSeleccionado}
             eliminarUsuario={eliminarUsuario}
           />
+        </>
       )}
-
-      <ModalRegistroUsuario
-        mostrarModal={mostrarModalAgregar}
-        setMostrarModal={setMostrarModalAgregar}
-        nuevoUsuario={nuevoUsuario}
-        manejarCambioInput={manejarCambioInput}
-        agregarEmpleado={agregarUsuario}
-        empleados={empleados}
-      />
     </Container>
   );
 };

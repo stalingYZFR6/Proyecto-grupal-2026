@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Modal, Form, Button, Image } from "react-bootstrap";
 
 const ModalRegistroEmpleado = ({
@@ -11,6 +11,7 @@ const ModalRegistroEmpleado = ({
 }) => {
 
     const [deshabilitado, setDeshabilitado] = useState(false);
+    const fileInputRef = useRef(null);
 
     // MANEJAR IMAGEN DESDE ARCHIVO
     const manejarImagen = (e) => {
@@ -87,17 +88,34 @@ const ModalRegistroEmpleado = ({
                         />
                         <div className="text-muted x-small mb-3">
                             <i className="bi bi-info-circle me-1"></i>
-                            Puedes seleccionar un archivo o <strong>pegar una imagen (Ctrl+V)</strong> aquí.
+                            Haz un clic abajo para enfocar y <strong>pegar una imagen (Ctrl+V)</strong>.
                         </div>
 
-                        <Form.Group className="mt-2">
-                            <Form.Control
+                        {/* Zona interactiva personalizada */}
+                        <div 
+                            className="border rounded-3 p-3 text-center mx-auto bg-premium-light"
+                            style={{ width: "60%", cursor: "pointer", borderStyle: "dashed", outline: "none" }}
+                            onClick={(e) => {
+                                e.currentTarget.focus();
+                            }}
+                            onDoubleClick={() => {
+                                fileInputRef.current.click();
+                            }}
+                            tabIndex={0}
+                        >
+                            <i className="bi bi-image d-block mb-1 fs-4 text-primary"></i>
+                            <span className="small text-premium-muted">
+                                Un clic para enfocar (pegar Ctrl+V)<br/>
+                                <strong>Doble clic</strong> para buscar archivo
+                            </span>
+                            <input
                                 type="file"
+                                ref={fileInputRef}
                                 accept="image/*"
                                 onChange={manejarImagen}
-                                className="w-50 mx-auto"
+                                style={{ display: "none" }}
                             />
-                        </Form.Group>
+                        </div>
                     </div>
 
                     <div className="row">

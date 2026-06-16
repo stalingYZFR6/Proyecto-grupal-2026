@@ -12,7 +12,7 @@ importers:
         specifier: ^0.24.1
         version: 0.24.1
       '@supabase/supabase-js':
-        specifier: ^2.99.2
+        specifier: ^2.45.1
         version: 2.107.0
       bootstrap:
         specifier: ^5.3.3
@@ -33,7 +33,7 @@ importers:
         specifier: ^6.26.1
         version: 6.30.4(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       recharts:
-        specifier: 2.15.1
+        specifier: ^2.12.7
         version: 2.15.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       sweetalert2:
         specifier: ^11.12.4

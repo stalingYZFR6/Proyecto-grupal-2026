@@ -22,7 +22,6 @@
   --glass-bg: rgba(15, 23, 42, 0.8);
 }
 
-/* Corrección de clases estáticas de Bootstrap para modo oscuro */
 [data-bs-theme='dark'] .bg-light,
 [data-bs-theme='dark'] .bg-body-tertiary {
   background-color: var(--bg-light) !important;
@@ -89,7 +88,6 @@ body {
   font-weight: 600;
 }
 
-/* --- ESTILOS DE BÚSQUEDA CORREGIDOS --- */
 .search-container {
   position: relative;
   display: flex;
@@ -107,7 +105,7 @@ body {
 }
 
 .search-input {
-  padding-left: 48px !important; /* Espacio para el icono */
+  padding-left: 48px !important;
   border-radius: 12px !important;
   border: 1px solid var(--border-color) !important;
   background: var(--bg-card) !important;
@@ -127,4 +125,35 @@ body {
   color: var(--text-muted) !important;
   opacity: 0.7;
 }
-/* -------------------------------------- */
+
+/* --- ESTILOS ADICIONALES PARA DROPDOWNS --- */
+.no-caret-dropdown .dropdown-toggle::after {
+  display: none;
+}
+
+.dropdown-menu {
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  background-color: var(--bg-card);
+  padding: 8px;
+}
+
+.dropdown-item {
+  border-radius: 8px;
+  padding: 10px 16px;
+  color: var(--text-main);
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background-color: var(--bg-light);
+  color: var(--accent);
+}
+
+.dropdown-header {
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  padding: 10px 16px 5px;
+}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Container, Nav, Navbar, Offcanvas, Button } from "react-bootstrap";
+import { Container, Nav, Navbar, Offcanvas, Button, NavDropdown } from "react-bootstrap";
 import logo from "../../assets/logo.jpg";
 import { supabase } from "../../database/supabaseconfig";
 import "bootstrap-icons/font/bootstrap-icons.css";
@@ -30,7 +30,6 @@ const NavbarModaExpress = () => {
         document.documentElement.setAttribute("data-bs-theme", shouldBeDark ? "dark" : "light");
     }, []);
 
-    // Lógica de control de teclado (Escape) copiada del ejemplo
     const manejarTeclaEscape = useCallback((evento) => {
         if (evento.key === "Escape") {
             setMenuAbierto(false);
@@ -44,7 +43,7 @@ const NavbarModaExpress = () => {
 
     const manejarNavegacion = (ruta) => {
         navigate(ruta);
-        setMenuAbierto(false); // Cerrar menú al navegar
+        setMenuAbierto(false);
     };
 
     const cerrarSesion = async () => {
@@ -58,13 +57,18 @@ const NavbarModaExpress = () => {
         }
     };
 
-    const rutas = [
+    // Rutas principales (Siempre visibles)
+    const rutasPrincipales = [
         { path: "/", label: "Inicio", icon: "bi-grid-1x2" },
         { path: "/dashboard", label: "Estadísticas", icon: "bi-bar-chart" },
+        { path: "/asistencias", label: "Asistencia", icon: "bi-calendar-check" },
+    ];
+
+    // Rutas de Gestión (En un dropdown)
+    const rutasGestion = [
         { path: "/empleados", label: "Personal", icon: "bi-people" },
         { path: "/catalogo", label: "Catálogo", icon: "bi-journal-bookmark" },
         { path: "/incidencias", label: "Incidencias", icon: "bi-exclamation-circle" },
-        { path: "/asistencias", label: "Asistencia", icon: "bi-calendar-check" },
         { path: "/turnos", label: "Turnos", icon: "bi-clock" },
         { path: "/usuarios", label: "Usuarios", icon: "bi-person-gear" },
     ];
@@ -79,7 +83,7 @@ const NavbarModaExpress = () => {
                     {/* Logo y Marca */}
                     <Navbar.Brand 
                         onClick={() => manejarNavegacion("/")} 
-                        className="d-flex align-items-center gap-2" 
+                        className="d-flex align-items-center gap-2 me-4" 
                         style={{ cursor: 'pointer' }}
                     >
                         <img src={logo} alt="logo" width="36" height="36" className="rounded-circle border border-2 border-primary border-opacity-25" />
@@ -88,10 +92,10 @@ const NavbarModaExpress = () => {
                         </span>
                     </Navbar.Brand>
 
-                    {/* NAVEGACIÓN ESCRITORIO (Oculta en móviles) */}
-                    <div className="d-none d-lg-flex flex-grow-1 justify-content-center overflow-auto no-scrollbar mx-2">
-                        <Nav className="flex-row gap-1 flex-nowrap">
-                            {rutas.map((item) => (
+                    {/* NAVEGACIÓN ESCRITORIO */}
+                    <div className="d-none d-lg-flex flex-grow-1 align-items-center">
+                        <Nav className="me-auto gap-1">
+                            {rutasPrincipales.map((item) => (
                                 <Nav.Link 
                                     key={item.path} 
                                     onClick={() => manejarNavegacion(item.path)}
@@ -101,40 +105,70 @@ const NavbarModaExpress = () => {
                                     <span>{item.label}</span>
                                 </Nav.Link>
                             ))}
+
+                            {/* Dropdown de Gestión */}
+                            <NavDropdown 
+                                title={<><i className="bi bi-layers me-2"></i>Gestión</>}
+                                id="nav-gestion-dropdown"
+                                className="px-2 small fw-medium text-muted rounded-pill hover:bg-light transition-all"
+                            >
+                                {rutasGestion.map((item) => (
+                                    <NavDropdown.Item 
+                                        key={item.path}
+                                        onClick={() => manejarNavegacion(item.path)}
+                                        className={`d-flex align-items-center gap-2 py-2 ${location.pathname === item.path ? 'text-primary fw-bold' : ''}`}
+                                    >
+                                        <i className={`bi ${item.icon}`}></i>
+                                        {item.label}
+                                    </NavDropdown.Item>
+                                ))}
+                            </NavDropdown>
                         </Nav>
                     </div>
 
-                    {/* ACCIONES ESCRITORIO (Ocultas en móviles) */}
-                    <div className="d-none d-lg-flex align-items-center gap-1 gap-md-2">
-                        <Nav.Link onClick={() => setMostrarChatIA(true)} className="p-2 text-muted hover:text-primary transition-all">
-                            <i className="bi bi-robot fs-5"></i>
-                        </Nav.Link>
-                        <Nav.Link onClick={toggleDarkMode} className="p-2 text-muted hover:text-primary transition-all">
-                            <i className={`bi ${isDarkMode ? "bi-sun" : "bi-moon"} fs-5`}></i>
-                        </Nav.Link>
-                        <div className="vr mx-2" style={{ height: '24px', alignSelf: 'center' }}></div>
-                        <Nav.Link 
-                            onClick={cerrarSesion} 
-                            className="p-2 text-danger opacity-75 hover:opacity-100 transition-all d-flex align-items-center gap-2"
+                    {/* ACCIONES Y AJUSTES */}
+                    <div className="d-none d-lg-flex align-items-center gap-2">
+                        {/* Menú de Ajustes y Herramientas */}
+                        <NavDropdown 
+                            align="end"
+                            title={<i className="bi bi-gear fs-5 text-muted hover:text-primary transition-all"></i>}
+                            id="nav-settings-dropdown"
+                            className="no-caret-dropdown"
                         >
-                            <i className="bi bi-box-arrow-right fs-5"></i>
-                            <span className="small fw-bold">Salir</span>
-                        </Nav.Link>
+                            <NavDropdown.Header className="small text-uppercase fw-bold opacity-50">Herramientas</NavDropdown.Header>
+                            <NavDropdown.Item onClick={() => setMostrarChatIA(true)} className="d-flex align-items-center gap-2 py-2">
+                                <i className="bi bi-robot text-primary"></i> Asistente IA
+                            </NavDropdown.Item>
+                            
+                            <NavDropdown.Divider />
+                            
+                            <NavDropdown.Header className="small text-uppercase fw-bold opacity-50">Preferencias</NavDropdown.Header>
+                            <NavDropdown.Item onClick={toggleDarkMode} className="d-flex align-items-center gap-2 py-2">
+                                <i className={`bi ${isDarkMode ? "bi-sun text-warning" : "bi-moon text-info"}`}></i>
+                                Modo {isDarkMode ? "Claro" : "Oscuro"}
+                            </NavDropdown.Item>
+                            
+                            <NavDropdown.Divider />
+                            
+                            <NavDropdown.Item onClick={cerrarSesion} className="d-flex align-items-center gap-2 py-2 text-danger">
+                                <i className="bi bi-box-arrow-right"></i> Cerrar Sesión
+                            </NavDropdown.Item>
+                        </NavDropdown>
                     </div>
 
-                    {/* BOTÓN MENÚ MÓVIL (Solo visible en móviles) */}
+                    {/* BOTÓN MENÚ MÓVIL */}
                     <Button 
                         variant="link" 
                         className="d-lg-none p-2 text-muted hover:text-primary transition-all border-0"
                         onClick={() => setMenuAbierto(true)}
                         aria-label="Abrir menú"
                     >
-                        <i className="bi bi-three-dots-vertical fs-4"></i>
+                        <i className="bi bi-list fs-3"></i>
                     </Button>
                 </Container>
             </Navbar>
 
-            {/* PANEL LATERAL MÓVIL (Offcanvas) */}
+            {/* PANEL LATERAL MÓVIL */}
             <Offcanvas 
                 show={menuAbierto} 
                 onHide={() => setMenuAbierto(false)} 
@@ -150,13 +184,12 @@ const NavbarModaExpress = () => {
                         </span>
                     </Offcanvas.Title>
                 </Offcanvas.Header>
-                <Offcanvas.Body className="d-flex flex-column justify-content-between">
-                    {/* Enlaces de navegación */}
-                    <Nav className="flex-column gap-2">
-                        <div className="text-uppercase small fw-bold text-muted mb-2 px-2" style={{ letterSpacing: "1px" }}>
-                            Navegación
+                <Offcanvas.Body className="d-flex flex-column">
+                    <Nav className="flex-column gap-1">
+                        <div className="text-uppercase x-small fw-bold text-muted mb-2 px-2 mt-2" style={{ letterSpacing: "1px", fontSize: '0.7rem' }}>
+                            Navegación Principal
                         </div>
-                        {rutas.map((item) => (
+                        {[...rutasPrincipales, ...rutasGestion].map((item) => (
                             <Nav.Link 
                                 key={item.path} 
                                 onClick={() => manejarNavegacion(item.path)}
@@ -168,13 +201,7 @@ const NavbarModaExpress = () => {
                         ))}
                     </Nav>
 
-                    {/* Acciones y Ajustes al final */}
                     <div className="mt-auto pt-4 border-top border-opacity-10">
-                        <div className="text-uppercase small fw-bold text-muted mb-3 px-2" style={{ letterSpacing: "1px" }}>
-                            Herramientas y Cuenta
-                        </div>
-                        
-                        {/* Asistente IA */}
                         <Button 
                             variant="light" 
                             className="w-100 mb-2 py-2.5 rounded-3 d-flex align-items-center justify-content-start gap-3 bg-premium-light border-0 text-premium-main"
@@ -184,10 +211,9 @@ const NavbarModaExpress = () => {
                             }}
                         >
                             <i className="bi bi-robot fs-5 text-primary"></i>
-                            <span className="small fw-semibold">Consultas Inteligentes IA</span>
+                            <span className="small fw-semibold">Asistente IA</span>
                         </Button>
 
-                        {/* Modo Oscuro */}
                         <Button 
                             variant="light" 
                             className="w-100 mb-3 py-2.5 rounded-3 d-flex align-items-center justify-content-start gap-3 bg-premium-light border-0 text-premium-main"
@@ -197,7 +223,6 @@ const NavbarModaExpress = () => {
                             <span className="small fw-semibold">Modo {isDarkMode ? "Claro" : "Oscuro"}</span>
                         </Button>
 
-                        {/* Cerrar Sesión */}
                         <Button 
                             variant="danger" 
                             className="w-100 py-2.5 rounded-3 d-flex align-items-center justify-content-center gap-2 fw-bold"

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import './App.css'
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import Encabezado from "./components/navegacion/Encabezado";
 import Inicio from "./views/Inicio";
 import Empleados from './views/Empleado';
@@ -14,13 +14,15 @@ import RutaProtegida from "./components/rutas/RutaProtegida";
 import Pagina404 from "./views/Pagina404";
 import Dashboard from './views/Dashboard.jsx';
 
-const App = () => {
-  return (
-    <Router>
-      <Encabezado />
-      <main className="margen-superior-main">
-        <Routes>
+const AppContent = () => {
+  const location = useLocation();
+  const esLogin = location.pathname === "/login";
 
+  return (
+    <>
+      <Encabezado />
+      <main className={esLogin ? "" : "margen-superior-main"}>
+        <Routes>
           {/* Pública */}
           <Route path="/login" element={<Login />} />
 
@@ -36,10 +38,18 @@ const App = () => {
 
           {/* 404 */}
           <Route path="*" element={<Pagina404 />} />
-
         </Routes>
       </main>
+    </>
+  );
+};
+
+const App = () => {
+  return (
+    <Router>
+      <AppContent />
     </Router>
   );
 }
+
 export default App;

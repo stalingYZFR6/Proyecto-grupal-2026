@@ -19,7 +19,6 @@ const Login = () => {
             });
 
             if (error) {
-                // Capturar específicamente si el correo no ha sido confirmado
                 if (error.message?.toLowerCase().includes("email not confirmed") || error.status === 400) {
                     setError("El correo electrónico no ha sido confirmado. Por favor, revisa tu bandeja de entrada para verificar tu cuenta.");
                 } else {
@@ -45,7 +44,7 @@ const Login = () => {
     }, [navegar]);
 
     return (
-        <div className="vh-100 d-flex align-items-center justify-content-center overflow-hidden" style={{ background: "var(--bg-main)" }}>
+        <div className="vh-100 w-100 position-fixed top-0 start-0 d-flex align-items-center justify-content-center overflow-hidden" style={{ background: "var(--bg-main)", zIndex: 1050 }}>
             <Container fluid className="p-0 h-100">
                 <Row className="g-0 h-100">
                     {/* Lado Izquierdo: Decorativo */}

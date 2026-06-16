@@ -1,218 +1,296 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Container, Nav, Navbar, Offcanvas, Button } from "react-bootstrap";
+import { Button } from "react-bootstrap";
 import logo from "../../assets/logo.jpg";
 import { supabase } from "../../database/supabaseconfig";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import ChatIA from "../ia/ChatIA";
 import MascotaChibi from "../MascotaChibi";
 
-const NavbarModaExpress = () => {
-    const [isDarkMode, setIsDarkMode] = useState(true);
-    const [mostrarChatIA, setMostrarChatIA] = useState(false);
-    const [menuAbierto, setMenuAbierto] = useState(false);
-    
-    const navigate = useNavigate();
-    const location = useLocation();
-    const NOMBRE_MARCA = "AssisTech";
+const NavbarAssisTech = () => {
+  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [mostrarChatIA, setMostrarChatIA] = useState(false);
+  const [menuAbierto, setMenuAbierto] = useState(false);
+  const [dropdownConfiguracion, setDropdownConfiguracion] = useState(false);
 
-    const toggleDarkMode = () => {
-        const newMode = !isDarkMode;
-        setIsDarkMode(newMode);
-        localStorage.setItem("darkMode", newMode.toString());
-        document.documentElement.setAttribute("data-bs-theme", newMode ? "dark" : "light");
+  const navigate = useNavigate();
+  const location = useLocation();
+  const NOMBRE_MARCA = "AssisTech";
+
+  // Toggle de tema
+  const toggleDarkMode = () => {
+    const newMode = !isDarkMode;
+    setIsDarkMode(newMode);
+    localStorage.setItem("darkMode", newMode.toString());
+    document.documentElement.setAttribute("data-bs-theme", newMode ? "dark" : "light");
+  };
+
+  // Inicializar tema
+  useEffect(() => {
+    const savedMode = localStorage.getItem("darkMode");
+    const shouldBeDark = savedMode !== null ? savedMode === "true" : true;
+    setIsDarkMode(shouldBeDark);
+    document.documentElement.setAttribute("data-bs-theme", shouldBeDark ? "dark" : "light");
+  }, []);
+
+  // Control de teclado (Escape)
+  const manejarTeclaEscape = useCallback((evento) => {
+    if (evento.key === "Escape") {
+      setMenuAbierto(false);
+      setDropdownConfiguracion(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener("keydown", manejarTeclaEscape);
+    return () => window.removeEventListener("keydown", manejarTeclaEscape);
+  }, [manejarTeclaEscape]);
+
+  // Cerrar dropdowns al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.dropdown-config')) {
+        setDropdownConfiguracion(false);
+      }
     };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
 
-    useEffect(() => {
-        const savedMode = localStorage.getItem("darkMode");
-        const shouldBeDark = savedMode !== null ? savedMode === "true" : true;
-        setIsDarkMode(shouldBeDark);
-        document.documentElement.setAttribute("data-bs-theme", shouldBeDark ? "dark" : "light");
-    }, []);
+  const manejarNavegacion = (ruta) => {
+    navigate(ruta);
+    setMenuAbierto(false);
+    setDropdownConfiguracion(false);
+  };
 
-    // Lógica de control de teclado (Escape) copiada del ejemplo
-    const manejarTeclaEscape = useCallback((evento) => {
-        if (evento.key === "Escape") {
-            setMenuAbierto(false);
-        }
-    }, []);
+  const cerrarSesion = async () => {
+    try {
+      await supabase.auth.signOut();
+      localStorage.removeItem("usuario-supabase");
+      setMenuAbierto(false);
+      setDropdownConfiguracion(false);
+      navigate("/login");
+    } catch (err) {
+      console.error("Error cerrando sesión:", err.message);
+    }
+  };
 
-    useEffect(() => {
-        window.addEventListener("keydown", manejarTeclaEscape);
-        return () => window.removeEventListener("keydown", manejarTeclaEscape);
-    }, [manejarTeclaEscape]);
+  // Enlaces principales (operativos)
+  const rutasPrincipales = [
+    { path: "/dashboard", label: "Estadísticas", icon: "bi-bar-chart" },
+    { path: "/empleados", label: "Personal", icon: "bi-people" },
+    { path: "/incidencias", label: "Incidencias", icon: "bi-exclamation-circle" },
+    { path: "/asistencias", label: "Asistencia", icon: "bi-calendar-check" },
+    { path: "/turnos", label: "Turnos", icon: "bi-clock" },
+  ];
 
-    const manejarNavegacion = (ruta) => {
-        navigate(ruta);
-        setMenuAbierto(false); // Cerrar menú al navegar
-    };
+  // Enlaces administrativos (en dropdown)
+  const rutasAdministrativas = [
+    { path: "/catalogo", label: "Catálogo", icon: "bi-journal-bookmark" },
+    { path: "/usuarios", label: "Usuarios", icon: "bi-person-gear" },
+  ];
 
-    const cerrarSesion = async () => {
-        try {
-            await supabase.auth.signOut();
-            localStorage.removeItem("usuario-supabase");
-            setMenuAbierto(false);
-            navigate("/login");
-        } catch (err) {
-            console.error("Error cerrando sesión:", err.message);
-        }
-    };
+  if (location.pathname === "/login") return null;
 
-    const rutas = [
-        { path: "/", label: "Inicio", icon: "bi-grid-1x2" },
-        { path: "/dashboard", label: "Estadísticas", icon: "bi-bar-chart" },
-        { path: "/empleados", label: "Personal", icon: "bi-people" },
-        { path: "/catalogo", label: "Catálogo", icon: "bi-journal-bookmark" },
-        { path: "/incidencias", label: "Incidencias", icon: "bi-exclamation-circle" },
-        { path: "/asistencias", label: "Asistencia", icon: "bi-calendar-check" },
-        { path: "/turnos", label: "Turnos", icon: "bi-clock" },
-        { path: "/usuarios", label: "Usuarios", icon: "bi-person-gear" },
-    ];
+  return (
+    <>
+      <MascotaChibi />
+      <nav className="fixed top-0 left-0 right-0 z-[1030] flex justify-between items-center h-16 px-4 shadow-lg backdrop-blur-sm bg-[#0f172a]/95 border-b border-slate-700/50">
+        <div className="flex items-center gap-3">
+          {/* Logo */}
+          <div 
+            onClick={() => manejarNavegacion("/")} 
+            className="flex items-center gap-2 cursor-pointer"
+          >
+            <img src={logo} alt="logo" width="32" height="32" className="rounded-full border-2 border-slate-600" />
+            <span className="font-bold text-lg text-white tracking-tight">
+              {NOMBRE_MARCA}
+            </span>
+          </div>
 
-    if (location.pathname === "/login") return null;
+          {/* Enlaces principales - Escritorio */}
+          <div className="hidden lg:flex items-center gap-1">
+            {rutasPrincipales.map((item) => (
+              <button
+                key={item.path}
+                onClick={() => manejarNavegacion(item.path)}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap ${
+                  location.pathname === item.path
+                    ? 'bg-sky-500/20 text-sky-400'
+                    : 'text-slate-300 hover:bg-slate-800/50 hover:text-white'
+                }`}
+              >
+                <i className={`bi ${item.icon} text-base`}></i>
+                <span>{item.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
 
-    return (
-        <>
-            <MascotaChibi />
-            <Navbar expand="lg" fixed="top" className="glass-nav py-2" style={{ zIndex: 1030 }}>
-                <Container className="d-flex justify-content-between align-items-center">
-                    {/* Logo y Marca */}
-                    <Navbar.Brand 
-                        onClick={() => manejarNavegacion("/")} 
-                        className="d-flex align-items-center gap-2" 
-                        style={{ cursor: 'pointer' }}
-                    >
-                        <img src={logo} alt="logo" width="36" height="36" className="rounded-circle border border-2 border-primary border-opacity-25" />
-                        <span className="fw-bold fs-5 text-gradient" style={{ background: 'linear-gradient(45deg, var(--text-main), #38bdf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                            {NOMBRE_MARCA}
-                        </span>
-                    </Navbar.Brand>
+        {/* Acciones - Escritorio */}
+        <div className="hidden lg:flex items-center gap-2">
+          {/* Botón de chat IA */}
+          <button
+            onClick={() => setMostrarChatIA(true)}
+            className="p-2 text-slate-400 hover:text-sky-400 hover:bg-slate-800/50 rounded-lg transition-all duration-200"
+            title="Asistente IA"
+          >
+            <i className="bi bi-robot text-xl"></i>
+          </button>
 
-                    {/* NAVEGACIÓN ESCRITORIO (Oculta en móviles) */}
-                    <div className="d-none d-lg-flex flex-grow-1 justify-content-center overflow-auto no-scrollbar mx-2">
-                        <Nav className="flex-row gap-1 flex-nowrap">
-                            {rutas.map((item) => (
-                                <Nav.Link 
-                                    key={item.path} 
-                                    onClick={() => manejarNavegacion(item.path)}
-                                    className={`px-3 py-2 rounded-pill small fw-medium transition-all d-flex align-items-center ${location.pathname === item.path ? 'bg-primary bg-opacity-10 text-primary' : 'text-muted hover:bg-light'}`}
-                                >
-                                    <i className={`bi ${item.icon} me-2`}></i>
-                                    <span>{item.label}</span>
-                                </Nav.Link>
-                            ))}
-                        </Nav>
-                    </div>
+          {/* Toggle de tema */}
+          <button
+            onClick={toggleDarkMode}
+            className="p-2 text-slate-400 hover:text-yellow-400 hover:bg-slate-800/50 rounded-lg transition-all duration-200"
+            title={isDarkMode ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+          >
+            <i className={`bi ${isDarkMode ? "bi-sun" : "bi-moon"} text-xl`}></i>
+          </button>
 
-                    {/* ACCIONES ESCRITORIO (Ocultas en móviles) */}
-                    <div className="d-none d-lg-flex align-items-center gap-1 gap-md-2">
-                        <Nav.Link onClick={() => setMostrarChatIA(true)} className="p-2 text-muted hover:text-primary transition-all">
-                            <i className="bi bi-robot fs-5"></i>
-                        </Nav.Link>
-                        <Nav.Link onClick={toggleDarkMode} className="p-2 text-muted hover:text-primary transition-all">
-                            <i className={`bi ${isDarkMode ? "bi-sun" : "bi-moon"} fs-5`}></i>
-                        </Nav.Link>
-                        <div className="vr mx-2" style={{ height: '24px', alignSelf: 'center' }}></div>
-                        <Nav.Link 
-                            onClick={cerrarSesion} 
-                            className="p-2 text-danger opacity-75 hover:opacity-100 transition-all d-flex align-items-center gap-2"
-                        >
-                            <i className="bi bi-box-arrow-right fs-5"></i>
-                            <span className="small fw-bold">Salir</span>
-                        </Nav.Link>
-                    </div>
-
-                    {/* BOTÓN MENÚ MÓVIL (Solo visible en móviles) */}
-                    <Button 
-                        variant="link" 
-                        className="d-lg-none p-2 text-muted hover:text-primary transition-all border-0"
-                        onClick={() => setMenuAbierto(true)}
-                        aria-label="Abrir menú"
-                    >
-                        <i className="bi bi-three-dots-vertical fs-4"></i>
-                    </Button>
-                </Container>
-            </Navbar>
-
-            {/* PANEL LATERAL MÓVIL (Offcanvas) */}
-            <Offcanvas 
-                show={menuAbierto} 
-                onHide={() => setMenuAbierto(false)} 
-                placement="end"
-                className="d-lg-none"
-                style={{ background: "var(--bg-card)", color: "var(--text-main)" }}
+          {/* Botón de configuración (Dropdown) */}
+          <div className="relative dropdown-config">
+            <button
+              onClick={() => setDropdownConfiguracion(!dropdownConfiguracion)}
+              className="p-2 text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-all duration-200"
+              title="Configuración"
             >
-                <Offcanvas.Header closeButton className="border-bottom border-opacity-10">
-                    <Offcanvas.Title className="d-flex align-items-center gap-2">
-                        <img src={logo} alt="logo" width="30" height="30" className="rounded-circle" />
-                        <span className="fw-bold text-gradient" style={{ background: 'linear-gradient(45deg, var(--text-main), #38bdf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                            {NOMBRE_MARCA}
-                        </span>
-                    </Offcanvas.Title>
-                </Offcanvas.Header>
-                <Offcanvas.Body className="d-flex flex-column justify-content-between">
-                    {/* Enlaces de navegación */}
-                    <Nav className="flex-column gap-2">
-                        <div className="text-uppercase small fw-bold text-muted mb-2 px-2" style={{ letterSpacing: "1px" }}>
-                            Navegación
-                        </div>
-                        {rutas.map((item) => (
-                            <Nav.Link 
-                                key={item.path} 
-                                onClick={() => manejarNavegacion(item.path)}
-                                className={`px-3 py-2.5 rounded-3 small fw-medium transition-all d-flex align-items-center gap-3 ${location.pathname === item.path ? 'bg-primary bg-opacity-10 text-primary' : 'text-muted hover:bg-light'}`}
-                            >
-                                <i className={`bi ${item.icon} fs-5`}></i>
-                                <span>{item.label}</span>
-                            </Nav.Link>
-                        ))}
-                    </Nav>
+              <i className="bi bi-gear text-xl"></i>
+            </button>
 
-                    {/* Acciones y Ajustes al final */}
-                    <div className="mt-auto pt-4 border-top border-opacity-10">
-                        <div className="text-uppercase small fw-bold text-muted mb-3 px-2" style={{ letterSpacing: "1px" }}>
-                            Herramientas y Cuenta
-                        </div>
-                        
-                        {/* Asistente IA */}
-                        <Button 
-                            variant="light" 
-                            className="w-100 mb-2 py-2.5 rounded-3 d-flex align-items-center justify-content-start gap-3 bg-premium-light border-0 text-premium-main"
-                            onClick={() => {
-                                setMenuAbierto(false);
-                                setMostrarChatIA(true);
-                            }}
-                        >
-                            <i className="bi bi-robot fs-5 text-primary"></i>
-                            <span className="small fw-semibold">Consultas Inteligentes IA</span>
-                        </Button>
+            {/* Dropdown */}
+            {dropdownConfiguracion && (
+              <div className="absolute right-0 mt-2 w-48 bg-slate-850 border border-slate-700 rounded-lg shadow-xl py-1 z-[1031]">
+                {rutasAdministrativas.map((item) => (
+                  <button
+                    key={item.path}
+                    onClick={() => manejarNavegacion(item.path)}
+                    className={`w-full flex items-center gap-3 px-4 py-2 text-sm text-left transition-all duration-200 ${
+                      location.pathname === item.path
+                        ? 'bg-sky-500/20 text-sky-400'
+                        : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                    }`}
+                  >
+                    <i className={`bi ${item.icon}`}></i>
+                    <span>{item.label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
-                        {/* Modo Oscuro */}
-                        <Button 
-                            variant="light" 
-                            className="w-100 mb-3 py-2.5 rounded-3 d-flex align-items-center justify-content-start gap-3 bg-premium-light border-0 text-premium-main"
-                            onClick={toggleDarkMode}
-                        >
-                            <i className={`bi ${isDarkMode ? "bi-sun" : "bi-moon"} fs-5 text-warning`}></i>
-                            <span className="small fw-semibold">Modo {isDarkMode ? "Claro" : "Oscuro"}</span>
-                        </Button>
+          {/* Separador */}
+          <div className="w-px h-6 bg-slate-700 mx-2"></div>
 
-                        {/* Cerrar Sesión */}
-                        <Button 
-                            variant="danger" 
-                            className="w-100 py-2.5 rounded-3 d-flex align-items-center justify-content-center gap-2 fw-bold"
-                            onClick={cerrarSesion}
-                        >
-                            <i className="bi bi-box-arrow-right fs-5"></i>
-                            <span>Cerrar Sesión</span>
-                        </Button>
-                    </div>
-                </Offcanvas.Body>
-            </Offcanvas>
+          {/* Botón de salir */}
+          <button
+            onClick={cerrarSesion}
+            className="flex items-center gap-2 px-3 py-1.5 text-red-400 hover:text-white hover:bg-red-500/20 rounded-lg transition-all duration-200 text-sm font-medium"
+            title="Cerrar sesión"
+          >
+            <i className="bi bi-box-arrow-right text-lg"></i>
+            <span className="hidden xl:inline">Salir</span>
+          </button>
+        </div>
 
-            <ChatIA mostrar={mostrarChatIA} onCerrar={() => setMostrarChatIA(false)} />
-        </>
-    );
+        {/* Botón menú móvil */}
+        <button
+          className="lg:hidden p-2 text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-all duration-200"
+          onClick={() => setMenuAbierto(true)}
+          aria-label="Abrir menú"
+        >
+          <i className="bi bi-three-dots-vertical text-xl"></i>
+        </button>
+      </nav>
+
+      {/* Panel móvil */}
+      <div className={`lg:hidden fixed top-0 right-0 w-full h-screen bg-black/50 z-[1029] transition-opacity duration-300 ${menuAbierto ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={() => setMenuAbierto(false)}>
+        <div className={`absolute top-0 right-0 w-80 max-w-[85vw] h-screen bg-[#0f172a] shadow-2xl border-l border-slate-700 transform transition-transform duration-300 ${menuAbierto ? 'translate-x-0' : 'translate-x-full'}`}>
+          <div className="p-4 border-b border-slate-700">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <img src={logo} alt="logo" width="28" height="28" className="rounded-full" />
+                <span className="font-bold text-white">{NOMBRE_MARCA}</span>
+              </div>
+              <button onClick={() => setMenuAbierto(false)} className="p-2 text-slate-400 hover:text-white">
+                <i className="bi bi-x text-xl"></i>
+              </button>
+            </div>
+          </div>
+
+          <div className="p-4 space-y-2">
+            {/* Enlaces principales */}
+            <div className="mb-4">
+              <p className="text-xs text-slate-500 uppercase tracking-wider mb-2">Navegación</p>
+              {rutasPrincipales.map((item) => (
+                <button
+                  key={item.path}
+                  onClick={() => manejarNavegacion(item.path)}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 ${
+                    location.pathname === item.path
+                      ? 'bg-sky-500/20 text-sky-400'
+                      : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  }`}
+                >
+                  <i className={`bi ${item.icon} text-lg`}></i>
+                  <span>{item.label}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Enlaces administrativos */}
+            <div className="mb-4">
+              <p className="text-xs text-slate-500 uppercase tracking-wider mb-2">Administración</p>
+              {rutasAdministrativas.map((item) => (
+                <button
+                  key={item.path}
+                  onClick={() => manejarNavegacion(item.path)}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 ${
+                    location.pathname === item.path
+                      ? 'bg-sky-500/20 text-sky-400'
+                      : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  }`}
+                >
+                  <i className={`bi ${item.icon} text-lg`}></i>
+                  <span>{item.label}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Acciones */}
+            <div className="border-t border-slate-700 pt-4">
+              <div className="flex gap-2">
+                <button
+                  onClick={() => { setMenuAbierto(false); setMostrarChatIA(true); }}
+                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-all"
+                >
+                  <i className="bi bi-robot"></i>
+                  <span className="text-sm">IA</span>
+                </button>
+                
+                <button
+                  onClick={toggleDarkMode}
+                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-all"
+                >
+                  <i className={`bi ${isDarkMode ? 'bi-sun' : 'bi-moon'}`}></i>
+                  <span className="text-sm">{isDarkMode ? 'Claro' : 'Oscuro'}</span>
+                </button>
+              </div>
+
+              <button
+                onClick={cerrarSesion}
+                className="w-full flex items-center justify-center gap-2 mt-4 px-3 py-2.5 bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white rounded-lg transition-all duration-200"
+              >
+                <i className="bi bi-box-arrow-right"></i>
+                <span>Cerrar sesión</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <ChatIA mostrar={mostrarChatIA} onCerrar={() => setMostrarChatIA(false)} />
+    </div>
+  );
 };
 
-export default NavbarModaExpress;
+export default NavbarAssisTech;

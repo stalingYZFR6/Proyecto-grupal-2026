@@ -22,41 +22,21 @@
   --glass-bg: rgba(15, 23, 42, 0.8);
 }
 
-/* Ocultar barra de desplazamiento */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+/* Corrección de clases estáticas de Bootstrap para modo oscuro */
+[data-bs-theme='dark'] .bg-light,
+[data-bs-theme='dark'] .bg-body-tertiary {
+  background-color: var(--bg-light) !important;
+  color: var(--text-main) !important;
 }
 
-/* Estilos para Dropdown Premium */
-.custom-dropdown .dropdown-toggle::after {
-  display: none;
+[data-bs-theme='dark'] .bg-white {
+  background-color: var(--bg-card) !important;
+  color: var(--text-main) !important;
 }
 
-.custom-dropdown .dropdown-menu {
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
-  border-radius: 12px;
-  padding: 8px 0;
-  margin-top: 10px;
-  backdrop-filter: blur(8px);
+[data-bs-theme='dark'] .text-muted {
+  color: var(--text-muted) !important;
 }
-
-.custom-dropdown .dropdown-item {
-  color: var(--text-main);
-  transition: all 0.2s ease;
-}
-
-.custom-dropdown .dropdown-item:hover {
-  background: rgba(56, 189, 248, 0.1);
-  color: var(--accent);
-}
-
-/* ... (resto del archivo original) ... */
 
 body {
   font-family: 'Inter', sans-serif;
@@ -109,6 +89,7 @@ body {
   font-weight: 600;
 }
 
+/* --- ESTILOS DE BÚSQUEDA CORREGIDOS --- */
 .search-container {
   position: relative;
   display: flex;
@@ -126,7 +107,7 @@ body {
 }
 
 .search-input {
-  padding-left: 48px !important;
+  padding-left: 48px !important; /* Espacio para el icono */
   border-radius: 12px !important;
   border: 1px solid var(--border-color) !important;
   background: var(--bg-card) !important;
@@ -146,3 +127,4 @@ body {
   color: var(--text-muted) !important;
   opacity: 0.7;
 }
+/* -------------------------------------- */

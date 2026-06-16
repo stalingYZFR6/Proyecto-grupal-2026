@@ -5,12 +5,12 @@ import logo from "../../assets/logo.jpg";
 import { supabase } from "../../database/supabaseconfig";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import ChatIA from "../ia/ChatIA";
-import MascotaChibi from "../MascotaChibi";
 
 const NavbarModaExpress = () => {
     const [isDarkMode, setIsDarkMode] = useState(true);
     const [mostrarChatIA, setMostrarChatIA] = useState(false);
     const [menuAbierto, setMenuAbierto] = useState(false);
+    const [usuarioInfo, setUsuarioInfo] = useState({ email: "", nombreCompleto: "" });
     
     const navigate = useNavigate();
     const location = useLocation();
@@ -29,6 +29,46 @@ const NavbarModaExpress = () => {
         setIsDarkMode(shouldBeDark);
         document.documentElement.setAttribute("data-bs-theme", shouldBeDark ? "dark" : "light");
     }, []);
+
+    // Obtener información del usuario logueado y su empleado asociado
+    useEffect(() => {
+        const obtenerDatosUsuario = async () => {
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    const { data: perfil } = await supabase
+                        .from("usuarios")
+                        .select(`
+                            rol,
+                            empleado (
+                                nombre,
+                                apellido
+                            )
+                        `)
+                        .eq("id_auth", user.id)
+                        .maybeSingle();
+
+                    if (perfil && perfil.empleado) {
+                        setUsuarioInfo({
+                            email: user.email,
+                            nombreCompleto: `${perfil.empleado.nombre} ${perfil.empleado.apellido}`
+                        });
+                    } else {
+                        setUsuarioInfo({
+                            email: user.email,
+                            nombreCompleto: ""
+                        });
+                    }
+                } else {
+                    setUsuarioInfo({ email: "", nombreCompleto: "" });
+                }
+            } catch (err) {
+                console.error("Error al obtener datos del usuario:", err);
+            }
+        };
+
+        obtenerDatosUsuario();
+    }, [location.pathname]);
 
     const manejarTeclaEscape = useCallback((evento) => {
         if (evento.key === "Escape") {
@@ -50,6 +90,7 @@ const NavbarModaExpress = () => {
         try {
             await supabase.auth.signOut();
             localStorage.removeItem("usuario-supabase");
+            setUsuarioInfo({ email: "", nombreCompleto: "" });
             setMenuAbierto(false);
             navigate("/login");
         } catch (err) {
@@ -77,7 +118,6 @@ const NavbarModaExpress = () => {
 
     return (
         <>
-            <MascotaChibi />
             <Navbar expand="lg" fixed="top" className="glass-nav py-2" style={{ zIndex: 1030 }}>
                 <Container className="d-flex justify-content-between align-items-center">
                     {/* Logo y Marca */}
@@ -127,7 +167,14 @@ const NavbarModaExpress = () => {
                     </div>
 
                     {/* ACCIONES Y AJUSTES */}
-                    <div className="d-none d-lg-flex align-items-center gap-2">
+                    <div className="d-none d-lg-flex align-items-center gap-3">
+                        {/* Saludo personalizado */}
+                        {usuarioInfo.email && (
+                            <span className="small text-muted">
+                                Hola, <strong className="text-premium-main">{usuarioInfo.nombreCompleto || usuarioInfo.email}</strong>
+                            </span>
+                        )}
+
                         {/* Menú de Ajustes y Herramientas */}
                         <NavDropdown 
                             align="end"
@@ -177,11 +224,18 @@ const NavbarModaExpress = () => {
                 style={{ background: "var(--bg-card)", color: "var(--text-main)" }}
             >
                 <Offcanvas.Header closeButton className="border-bottom border-opacity-10">
-                    <Offcanvas.Title className="d-flex align-items-center gap-2">
-                        <img src={logo} alt="logo" width="30" height="30" className="rounded-circle" />
-                        <span className="fw-bold text-gradient" style={{ background: 'linear-gradient(45deg, var(--text-main), #38bdf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                            {NOMBRE_MARCA}
-                        </span>
+                    <Offcanvas.Title className="d-flex flex-column align-items-start gap-1">
+                        <div className="d-flex align-items-center gap-2">
+                            <img src={logo} alt="logo" width="30" height="30" className="rounded-circle" />
+                            <span className="fw-bold text-gradient" style={{ background: 'linear-gradient(45deg, var(--text-main), #38bdf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                                {NOMBRE_MARCA}
+                            </span>
+                        </div>
+                        {usuarioInfo.email && (
+                            <span className="x-small text-muted mt-1" style={{ fontSize: '0.75rem' }}>
+                                Hola, <strong>{usuarioInfo.nombreCompleto || usuarioInfo.email}</strong>
+                            </span>
+                        )}
                     </Offcanvas.Title>
                 </Offcanvas.Header>
                 <Offcanvas.Body className="d-flex flex-column">

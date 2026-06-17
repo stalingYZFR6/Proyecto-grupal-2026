@@ -14,6 +14,7 @@ const Usuarios = () => {
   const [usuariosFiltrados, setUsuariosFiltrados] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [textoBusqueda, setTextoBusqueda] = useState("");
+  const [rolUsuarioActual, setRolUsuarioActual] = useState("");
 
   const [empleados, setEmpleados] = useState([]);
   const [mostrarModalAgregar, setMostrarModalAgregar] = useState(false);
@@ -29,11 +30,31 @@ const Usuarios = () => {
 
   const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null);
 
+  // --- Obtener rol del usuario actual ---
+  const obtenerPerfilUsuarioActual = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: perfil } = await supabase
+        .from("usuarios")
+        .select("rol")
+        .eq("id_auth", user.id)
+        .maybeSingle();
+      if (perfil) {
+        setRolUsuarioActual(perfil.rol);
+        return perfil.rol;
+      }
+    }
+    return "";
+  };
+
   // --- Obtener usuarios y empleados ---
   const obtenerUsuarios = async () => {
     try {
       setCargando(true);
-      const { data, error } = await supabase
+      const rol = await obtenerPerfilUsuarioActual();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      let query = supabase
         .from("usuarios")
         .select(`
           *,
@@ -42,9 +63,15 @@ const Usuarios = () => {
             apellido,
             correo
           )
-        `)
-        .order("id_usuario", { ascending: true });
+        `);
 
+      if (rol === "empleado" && user) {
+        query = query.eq("id_auth", user.id);
+      } else {
+        query = query.order("id_usuario", { ascending: true });
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
 
       setUsuarios(data || []);
@@ -112,7 +139,6 @@ const Usuarios = () => {
     }
 
     try {
-      // Llamar a la función RPC segura que crea el usuario confirmado e inserta en public.usuarios
       const { error } = await supabase.rpc("crear_usuario_confirmado", {
         p_email: nuevoUsuario.login,
         p_password: nuevoUsuario.password,
@@ -230,15 +256,17 @@ const Usuarios = () => {
               </div>
             </div>
           </Col>
-          <Col lg={6} className="text-lg-end">
-            <Button
-              onClick={() => setMostrarModalAgregar(true)}
-              className="btn-premium-primary shadow-sm"
-            >
-              <i className="bi bi-person-plus-fill me-2"></i>
-              Nuevo Usuario
-            </Button>
-          </Col>
+          {rolUsuarioActual !== "empleado" && (
+            <Col lg={6} className="text-lg-end">
+              <Button
+                onClick={() => setMostrarModalAgregar(true)}
+                className="btn-premium-primary shadow-sm"
+              >
+                <i className="bi bi-person-plus-fill me-2"></i>
+                Nuevo Usuario
+              </Button>
+            </Col>
+          )}
         </Row>
       </div>
 
@@ -261,6 +289,7 @@ const Usuarios = () => {
       <TablaUsuarios
         usuarios={usuariosFiltrados}
         cargando={cargando}
+        rolUsuarioActual={rolUsuarioActual}
         setMostrarModalEditar={setMostrarModalEditar}
         setMostrarModalEliminar={setMostrarModalEliminar}
         setUsuarioSeleccionado={setUsuarioSeleccionado}
@@ -281,6 +310,7 @@ const Usuarios = () => {
             mostrarModal={mostrarModalEditar}
             setMostrarModal={setMostrarModalEditar}
             usuarioSeleccionado={usuarioSeleccionado}
+            rolUsuarioActual={rolUsuarioActual}
             guardarCambios={guardarCambios}
             empleados={empleados}
           />

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Table, Button, Badge, Spinner, Alert, Card, Row, Col } from "react-bootstrap";
+import { Table, Button, Badge, Spinner, Card, Row, Col } from "react-bootstrap";
 import { supabase } from "../../database/supabaseconfig";
 import Swal from "sweetalert2";
 import ModalDetalleJornada from "./ModalDetalleJornada.jsx";
@@ -10,8 +10,26 @@ const TablaJornadas = () => {
   const [jornadas, setJornadas] = useState([]);
   const [showDetalle, setShowDetalle] = useState(false);
   const [jornadaSeleccionada, setJornadaSeleccionada] = useState(null);
+  const [rolUsuarioActual, setRolUsuarioActual] = useState("");
 
-  useEffect(() => { cargarJornadas(); }, []);
+  const obtenerPerfilUsuarioActual = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: perfil } = await supabase
+        .from("usuarios")
+        .select("rol")
+        .eq("id_auth", user.id)
+        .maybeSingle();
+      if (perfil) {
+        setRolUsuarioActual(perfil.rol);
+      }
+    }
+  };
+
+  useEffect(() => { 
+    obtenerPerfilUsuarioActual();
+    cargarJornadas(); 
+  }, []);
 
   const cargarJornadas = async () => {
     try {
@@ -43,9 +61,11 @@ const TablaJornadas = () => {
     <>
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h4 className="fw-bold mb-0">Historial de Jornadas</h4>
-        <Button onClick={crearJornada} className="btn-premium-primary shadow-sm">
-          <i className="bi bi-calendar-plus me-2"></i> Abrir Jornada de Hoy
-        </Button>
+        {rolUsuarioActual !== "empleado" && (
+          <Button onClick={crearJornada} className="btn-premium-primary shadow-sm">
+            <i className="bi bi-calendar-plus me-2"></i> Abrir Jornada de Hoy
+          </Button>
+        )}
       </div>
 
       {loading ? (

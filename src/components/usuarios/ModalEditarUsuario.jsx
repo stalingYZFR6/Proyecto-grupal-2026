@@ -5,6 +5,7 @@ const ModalEditarUsuario = ({
   mostrarModal,
   setMostrarModal,
   usuarioSeleccionado,
+  rolUsuarioActual,
   guardarCambios,
   empleados
 }) => {
@@ -34,6 +35,8 @@ const ModalEditarUsuario = ({
     setEnviando(false);
   };
 
+  const esEmpleado = rolUsuarioActual === "empleado";
+
   return (
     <Modal
       backdrop="static"
@@ -59,6 +62,7 @@ const ModalEditarUsuario = ({
               onChange={(e) =>
                 setUsuarioEdit({ ...usuarioEdit, id_empleado: e.target.value })
               }
+              disabled={esEmpleado}
               required
             >
               <option value="">Seleccione un empleado</option>
@@ -79,6 +83,7 @@ const ModalEditarUsuario = ({
               onChange={(e) =>
                 setUsuarioEdit({ ...usuarioEdit, rol: e.target.value })
               }
+              disabled={esEmpleado}
               required
             >
               <option value="">Seleccione un rol</option>
@@ -95,6 +100,7 @@ const ModalEditarUsuario = ({
               id="activo-switch"
               label="Usuario Activo"
               checked={usuarioEdit.activo}
+              disabled={esEmpleado}
               onChange={(e) =>
                 setUsuarioEdit({ ...usuarioEdit, activo: e.target.checked })
               }

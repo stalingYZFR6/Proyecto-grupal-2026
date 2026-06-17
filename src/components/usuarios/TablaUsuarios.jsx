@@ -4,6 +4,7 @@ import { Table, Spinner, Button, Badge } from "react-bootstrap";
 const TablaUsuarios = ({
   usuarios,
   cargando,
+  rolUsuarioActual,
   setMostrarModalEditar,
   setMostrarModalEliminar,
   setUsuarioSeleccionado
@@ -64,16 +65,18 @@ const TablaUsuarios = ({
               >
                 <i className="bi bi-pencil"></i> Editar
               </Button>
-              <Button
-                variant="outline-danger"
-                size="sm"
-                onClick={() => {
-                  setUsuarioSeleccionado(usuario);
-                  setMostrarModalEliminar(true);
-                }}
-              >
-                <i className="bi bi-trash"></i> Eliminar
-              </Button>
+              {rolUsuarioActual !== "empleado" && (
+                <Button
+                  variant="outline-danger"
+                  size="sm"
+                  onClick={() => {
+                    setUsuarioSeleccionado(usuario);
+                    setMostrarModalEliminar(true);
+                  }}
+                >
+                  <i className="bi bi-trash"></i> Eliminar
+                </Button>
+              )}
             </td>
           </tr>
         ))}

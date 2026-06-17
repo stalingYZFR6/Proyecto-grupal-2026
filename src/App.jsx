@@ -11,6 +11,7 @@ import Turnos from './views/Turnos';
 import Usuarios from './views/Usuarios';
 import Login from "./views/Login";
 import Perfil from "./views/Perfil";
+import Ajustes from "./views/Ajustes";
 import RutaProtegida from "./components/rutas/RutaProtegida";
 import Pagina404 from "./views/Pagina404";
 import Dashboard from './views/Dashboard.jsx';
@@ -38,6 +39,7 @@ const AppContent = () => {
           <Route path="/usuarios" element={<RutaProtegida><Usuarios /></RutaProtegida>} />
           <Route path="/perfil" element={<RutaProtegida><Perfil /></RutaProtegida>} />
           <Route path="/perfil/:id" element={<RutaProtegida><Perfil /></RutaProtegida>} />
+          <Route path="/ajustes" element={<RutaProtegida><Ajustes /></RutaProtegida>} />
 
           {/* 404 */}
           <Route path="*" element={<Pagina404 />} />

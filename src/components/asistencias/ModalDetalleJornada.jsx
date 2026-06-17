@@ -206,6 +206,47 @@ const ModalDetalleJornada = ({
     if (!detalleSalida) return;
 
     try {
+      // ======================================
+      // VALIDAR RESTRICCIÓN POR IP
+      // ======================================
+      const { data: configIPActiva } = await supabase
+        .from("configuracion")
+        .select("valor")
+        .eq("clave", "restriccion_ip_activa")
+        .maybeSingle();
+
+      if (configIPActiva?.valor === "true") {
+        const { data: configIPAutorizada } = await supabase
+          .from("configuracion")
+          .select("valor")
+          .eq("clave", "ip_autorizada")
+          .maybeSingle();
+
+        const ipAutorizada = configIPAutorizada?.valor;
+        if (ipAutorizada) {
+          try {
+            const res = await fetch("https://api.ipify.org?format=json");
+            const ipData = await res.json();
+            const userIP = ipData.ip;
+            if (userIP !== ipAutorizada) {
+              Swal.fire({
+                icon: "error",
+                title: "Acceso denegado",
+                text: `Solo puedes registrar asistencia conectado a la red autorizada de la empresa (Tu IP: ${userIP}, Autorizada: ${ipAutorizada})`
+              });
+              return;
+            }
+          } catch (ipErr) {
+            Swal.fire({
+              icon: "error",
+              title: "Error de verificación",
+              text: "No se pudo verificar tu dirección IP. Por favor, intenta de nuevo."
+            });
+            return;
+          }
+        }
+      }
+
       const ahora = new Date();
       const entrada = new Date(detalleSalida.hora_entrada);
 

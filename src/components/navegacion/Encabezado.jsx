@@ -128,11 +128,15 @@ const NavbarModaExpress = () => {
         { path: "/incidencias", label: "Incidencias", icon: "bi-exclamation-circle" },
         { path: "/turnos", label: "Turnos", icon: "bi-clock" },
         { path: "/usuarios", label: "Usuarios", icon: "bi-person-gear" },
+        { path: "/ajustes", label: "Ajustes", icon: "bi-gear" },
     ];
 
-    // Filtrar rutas de gestión para empleados
+    // Filtrar rutas de gestión para empleados y supervisores
     const rutasGestionFiltradas = rutasGestion.filter(item => {
-        if (rolUsuarioActual === "empleado") {
+        if (item.path === "/ajustes") {
+            return rolUsuarioActual?.toLowerCase() === "admin";
+        }
+        if (rolUsuarioActual?.toLowerCase() === "empleado") {
             // El empleado solo puede ver el Catálogo y las Incidencias
             return item.path !== "/empleados" && item.path !== "/usuarios";
         }

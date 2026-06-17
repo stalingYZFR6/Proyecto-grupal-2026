@@ -1,112 +1,47 @@
 -- ====================================================================
--- 1. FUNCIÓN HELPER PARA OBTENER EL ROL DEL USUARIO ACTUAL
+-- 1. CREACIÓN DE LA TABLA DE DOCUMENTOS DEL EMPLEADO
 -- ====================================================================
-CREATE OR REPLACE FUNCTION public.get_current_user_role()
-RETURNS text AS $$
-DECLARE
-    v_rol text;
-BEGIN
-    SELECT rol INTO v_rol
-    FROM public.usuarios
-    WHERE id_auth = auth.uid()
-    LIMIT 1;
-    
-    RETURN COALESCE(v_rol, 'empleado');
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+CREATE TABLE IF NOT EXISTS public.documentos_empleado (
+    id_documento SERIAL PRIMARY KEY,
+    id_empleado INT REFERENCES public.empleado(id_empleado) ON DELETE CASCADE,
+    titulo_personalizado TEXT NOT NULL,
+    url_archivo TEXT NOT NULL,
+    tipo_archivo TEXT NOT NULL, -- 'image', 'pdf', 'other'
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Habilitar RLS
+ALTER TABLE public.documentos_empleado ENABLE ROW LEVEL SECURITY;
 
 -- ====================================================================
--- 2. HABILITAR RLS EN LAS TABLAS CRÍTICAS
+-- 2. POLÍTICAS DE SEGURIDAD RLS PARA documentos_empleado
 -- ====================================================================
-ALTER TABLE public.usuarios ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.asistencias ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.jornadas_asistencia ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.empleado ENABLE ROW LEVEL SECURITY;
-
--- ====================================================================
--- 3. POLÍTICAS PARA LA TABLA public.usuarios
--- ====================================================================
-DROP POLICY IF EXISTS "Admin tiene acceso total a usuarios" ON public.usuarios;
-CREATE POLICY "Admin tiene acceso total a usuarios" 
-ON public.usuarios 
+DROP POLICY IF EXISTS "Admin tiene acceso total a documentos" ON public.documentos_empleado;
+CREATE POLICY "Admin tiene acceso total a documentos" 
+ON public.documentos_empleado 
 FOR ALL 
 USING (public.get_current_user_role() = 'Admin');
 
-DROP POLICY IF EXISTS "Empleados solo ven su propio usuario" ON public.usuarios;
-CREATE POLICY "Empleados solo ven su propio usuario" 
-ON public.usuarios 
+DROP POLICY IF EXISTS "Empleados pueden ver sus propios documentos" ON public.documentos_empleado;
+CREATE POLICY "Empleados pueden ver sus propios documents" 
+ON public.documentos_empleado 
 FOR SELECT 
-USING (id_auth = auth.uid());
+USING (
+    id_empleado = (SELECT id_empleado FROM public.usuarios WHERE id_auth = auth.uid() LIMIT 1)
+);
 
--- ====================================================================
--- 4. POLÍTICAS PARA LA TABLA public.asistencias
--- ====================================================================
-DROP POLICY IF EXISTS "Admin tiene acceso total a asistencias" ON public.asistencias;
-CREATE POLICY "Admin tiene acceso total a asistencias" 
-ON public.asistencias 
-FOR ALL 
-USING (public.get_current_user_role() = 'Admin');
-
-DROP POLICY IF EXISTS "Empleados solo insertan su propia asistencia" ON public.asistencias;
-CREATE POLICY "Empleados solo insertan su propia asistencia" 
-ON public.asistencias 
+DROP POLICY IF EXISTS "Empleados pueden insertar sus propios documentos" ON public.documentos_empleado;
+CREATE POLICY "Empleados pueden insertar sus propios documentos" 
+ON public.documentos_empleado 
 FOR INSERT 
 WITH CHECK (
     id_empleado = (SELECT id_empleado FROM public.usuarios WHERE id_auth = auth.uid() LIMIT 1)
 );
 
-DROP POLICY IF EXISTS "Empleados solo actualizan su propia asistencia" ON public.asistencias;
-CREATE POLICY "Empleados solo actualizan su propia asistencia" 
-ON public.asistencias 
-FOR UPDATE 
-USING (
-    id_empleado = (SELECT id_empleado FROM public.usuarios WHERE id_auth = auth.uid() LIMIT 1)
-);
-
-DROP POLICY IF EXISTS "Empleados solo ven su propia asistencia" ON public.asistencias;
-CREATE POLICY "Empleados solo ven su propia asistencia" 
-ON public.asistencias 
-FOR SELECT 
-USING (
-    id_empleado = (SELECT id_empleado FROM public.usuarios WHERE id_auth = auth.uid() LIMIT 1)
-);
-
--- ====================================================================
--- 5. POLÍTICAS PARA LA TABLA public.jornadas_asistencia
--- ====================================================================
-DROP POLICY IF EXISTS "Admin tiene acceso total a jornadas" ON public.jornadas_asistencia;
-CREATE POLICY "Admin tiene acceso total a jornadas" 
-ON public.jornadas_asistencia 
-FOR ALL 
-USING (public.get_current_user_role() = 'Admin');
-
-DROP POLICY IF EXISTS "Todos pueden ver las jornadas" ON public.jornadas_asistencia;
-CREATE POLICY "Todos pueden ver las jornadas" 
-ON public.jornadas_asistencia 
-FOR SELECT 
-TO authenticated 
-USING (true);
-
--- ====================================================================
--- 6. POLÍTICAS PARA LA TABLA public.empleado
--- ====================================================================
-DROP POLICY IF EXISTS "Admin tiene acceso total a empleados" ON public.empleado;
-CREATE POLICY "Admin tiene acceso total a empleados" 
-ON public.empleado 
-FOR ALL 
-USING (public.get_current_user_role() = 'Admin');
-
-DROP POLICY IF EXISTS "Todos pueden ver los empleados" ON public.empleado;
-CREATE POLICY "Todos pueden ver los empleados" 
-ON public.empleado 
-FOR SELECT 
-TO authenticated 
-USING (true);
-
-DROP POLICY IF EXISTS "Empleados solo pueden actualizar su propio perfil" ON public.empleado;
-CREATE POLICY "Empleados solo pueden actualizar su propio perfil" 
-ON public.empleado 
-FOR UPDATE 
+DROP POLICY IF EXISTS "Empleados pueden eliminar sus propios documentos" ON public.documentos_empleado;
+CREATE POLICY "Empleados pueden eliminar sus propios documentos" 
+ON public.documentos_empleado 
+FOR DELETE 
 USING (
     id_empleado = (SELECT id_empleado FROM public.usuarios WHERE id_auth = auth.uid() LIMIT 1)
 );

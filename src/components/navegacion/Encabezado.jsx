@@ -10,7 +10,7 @@ const NavbarModaExpress = () => {
     const [isDarkMode, setIsDarkMode] = useState(true);
     const [mostrarChatIA, setMostrarChatIA] = useState(false);
     const [menuAbierto, setMenuAbierto] = useState(false);
-    const [usuarioInfo, setUsuarioInfo] = useState({ email: "", nombreCompleto: "", rol: "", id_empleado: null });
+    const [usuarioInfo, setUsuarioInfo] = useState({ email: "", nombreCompleto: "" });
     
     const navigate = useNavigate();
     const location = useLocation();
@@ -30,6 +30,7 @@ const NavbarModaExpress = () => {
         document.documentElement.setAttribute("data-bs-theme", shouldBeDark ? "dark" : "light");
     }, []);
 
+    // Obtener información del usuario logueado y su empleado asociado
     useEffect(() => {
         const obtenerDatosUsuario = async () => {
             try {
@@ -39,7 +40,6 @@ const NavbarModaExpress = () => {
                         .from("usuarios")
                         .select(`
                             rol,
-                            id_empleado,
                             empleado (
                                 nombre,
                                 apellido
@@ -48,17 +48,19 @@ const NavbarModaExpress = () => {
                         .eq("id_auth", user.id)
                         .maybeSingle();
 
-                    if (perfil) {
+                    if (perfil && perfil.empleado) {
                         setUsuarioInfo({
                             email: user.email,
-                            nombreCompleto: perfil.empleado ? `${perfil.empleado.nombre} ${perfil.empleado.apellido}` : "",
-                            rol: perfil.rol,
-                            id_empleado: perfil.id_empleado
+                            nombreCompleto: `${perfil.empleado.nombre} ${perfil.empleado.apellido}`
                         });
-                        // Guardar rol en localStorage para acceso rápido en otras vistas
-                        localStorage.setItem("user-role", perfil.rol);
-                        localStorage.setItem("user-emp-id", perfil.id_empleado);
+                    } else {
+                        setUsuarioInfo({
+                            email: user.email,
+                            nombreCompleto: ""
+                        });
                     }
+                } else {
+                    setUsuarioInfo({ email: "", nombreCompleto: "" });
                 }
             } catch (err) {
                 console.error("Error al obtener datos del usuario:", err);
@@ -88,9 +90,7 @@ const NavbarModaExpress = () => {
         try {
             await supabase.auth.signOut();
             localStorage.removeItem("usuario-supabase");
-            localStorage.removeItem("user-role");
-            localStorage.removeItem("user-emp-id");
-            setUsuarioInfo({ email: "", nombreCompleto: "", rol: "", id_empleado: null });
+            setUsuarioInfo({ email: "", nombreCompleto: "" });
             setMenuAbierto(false);
             navigate("/login");
         } catch (err) {
@@ -98,24 +98,21 @@ const NavbarModaExpress = () => {
         }
     };
 
-    const esAdmin = usuarioInfo.rol === "admin";
-    const esEmpleado = usuarioInfo.rol === "empleado";
-
-    // Rutas principales
+    // Rutas principales (Siempre visibles)
     const rutasPrincipales = [
         { path: "/", label: "Inicio", icon: "bi-grid-1x2" },
         { path: "/dashboard", label: "Estadísticas", icon: "bi-bar-chart" },
         { path: "/asistencias", label: "Asistencia", icon: "bi-calendar-check" },
     ];
 
-    // Rutas de Gestión (Filtradas por Rol)
+    // Rutas de Gestión (En un dropdown)
     const rutasGestion = [
-        { path: "/empleados", label: esEmpleado ? "Mi Perfil" : "Personal", icon: "bi-people" },
+        { path: "/empleados", label: "Personal", icon: "bi-people" },
         { path: "/catalogo", label: "Catálogo", icon: "bi-journal-bookmark" },
-        { path: "/incidencias", label: "Incidencias", icon: "bi-exclamation-circle", restricted: esEmpleado },
-        { path: "/turnos", label: "Turnos", icon: "bi-clock", restricted: esEmpleado },
-        { path: "/usuarios", label: "Usuarios", icon: "bi-person-gear", restricted: !esAdmin },
-    ].filter(r => !r.restricted);
+        { path: "/incidencias", label: "Incidencias", icon: "bi-exclamation-circle" },
+        { path: "/turnos", label: "Turnos", icon: "bi-clock" },
+        { path: "/usuarios", label: "Usuarios", icon: "bi-person-gear" },
+    ];
 
     if (location.pathname === "/login") return null;
 
@@ -123,6 +120,7 @@ const NavbarModaExpress = () => {
         <>
             <Navbar expand="lg" fixed="top" className="glass-nav py-2" style={{ zIndex: 1030 }}>
                 <Container className="d-flex justify-content-between align-items-center">
+                    {/* Logo y Marca */}
                     <Navbar.Brand 
                         onClick={() => manejarNavegacion("/")} 
                         className="d-flex align-items-center gap-2 me-4" 
@@ -134,6 +132,7 @@ const NavbarModaExpress = () => {
                         </span>
                     </Navbar.Brand>
 
+                    {/* NAVEGACIÓN ESCRITORIO */}
                     <div className="d-none d-lg-flex flex-grow-1 align-items-center">
                         <Nav className="me-auto gap-1">
                             {rutasPrincipales.map((item) => (
@@ -147,6 +146,7 @@ const NavbarModaExpress = () => {
                                 </Nav.Link>
                             ))}
 
+                            {/* Dropdown de Gestión */}
                             <NavDropdown 
                                 title={<><i className="bi bi-layers me-2"></i>Gestión</>}
                                 id="nav-gestion-dropdown"
@@ -166,14 +166,16 @@ const NavbarModaExpress = () => {
                         </Nav>
                     </div>
 
+                    {/* ACCIONES Y AJUSTES */}
                     <div className="d-none d-lg-flex align-items-center gap-3">
+                        {/* Saludo personalizado */}
                         {usuarioInfo.email && (
-                            <div className="d-flex flex-column align-items-end">
-                                <span className="small text-muted" style={{ fontSize: '0.7rem' }}>{usuarioInfo.rol?.toUpperCase()}</span>
-                                <span className="small text-premium-main fw-bold">{usuarioInfo.nombreCompleto || usuarioInfo.email}</span>
-                            </div>
+                            <span className="small text-muted">
+                                Hola, <strong className="text-premium-main">{usuarioInfo.nombreCompleto || usuarioInfo.email}</strong>
+                            </span>
                         )}
 
+                        {/* Menú de Ajustes y Herramientas */}
                         <NavDropdown 
                             align="end"
                             title={<i className="bi bi-gear fs-5 text-muted hover:text-primary transition-all"></i>}
@@ -201,6 +203,7 @@ const NavbarModaExpress = () => {
                         </NavDropdown>
                     </div>
 
+                    {/* BOTÓN MENÚ MÓVIL */}
                     <Button 
                         variant="link" 
                         className="d-lg-none p-2 text-muted hover:text-primary transition-all border-0"
@@ -212,6 +215,7 @@ const NavbarModaExpress = () => {
                 </Container>
             </Navbar>
 
+            {/* PANEL LATERAL MÓVIL */}
             <Offcanvas 
                 show={menuAbierto} 
                 onHide={() => setMenuAbierto(false)} 
@@ -229,7 +233,7 @@ const NavbarModaExpress = () => {
                         </div>
                         {usuarioInfo.email && (
                             <span className="x-small text-muted mt-1" style={{ fontSize: '0.75rem' }}>
-                                {usuarioInfo.rol?.toUpperCase()} - <strong>{usuarioInfo.nombreCompleto || usuarioInfo.email}</strong>
+                                Hola, <strong>{usuarioInfo.nombreCompleto || usuarioInfo.email}</strong>
                             </span>
                         )}
                     </Offcanvas.Title>

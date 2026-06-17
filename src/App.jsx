@@ -13,7 +13,6 @@ import Login from "./views/Login";
 import RutaProtegida from "./components/rutas/RutaProtegida";
 import Pagina404 from "./views/Pagina404";
 import Dashboard from './views/Dashboard.jsx';
-import MiPerfil from './views/MiPerfil';
 
 const AppContent = () => {
   const location = useLocation();
@@ -36,7 +35,6 @@ const AppContent = () => {
           <Route path="/asistencias" element={<RutaProtegida><Asistencias /></RutaProtegida>} />
           <Route path="/turnos" element={<RutaProtegida><Turnos /></RutaProtegida>} />
           <Route path="/usuarios" element={<RutaProtegida><Usuarios /></RutaProtegida>} />
-          <Route path="/mi-perfil" element={<RutaProtegida><MiPerfil /></RutaProtegida>} />
 
           {/* 404 */}
           <Route path="*" element={<Pagina404 />} />

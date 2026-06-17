@@ -2,8 +2,6 @@ import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Card, Form, Button, Spinner, Alert } from "react-bootstrap";
 import { supabase } from "../database/supabaseconfig";
 import Swal from "sweetalert2";
-import { jsPDF } from "jspdf";
-import "jspdf-autotable";
 
 const Ajustes = () => {
     const [loading, setLoading] = useState(true);
@@ -188,7 +186,7 @@ const Ajustes = () => {
         }
     };
 
-    // --- UX: Exportación Masiva de Respaldos en PDF ---
+    // --- UX: Exportación Masiva de Respaldos en PDF (Nativo) ---
     const exportarDatosMes = async () => {
         try {
             setExportando(true);
@@ -219,58 +217,122 @@ const Ajustes = () => {
                 return;
             }
 
-            // Crear documento PDF
-            const doc = new jsPDF({ orientation: "landscape" });
-
-            // Título y Encabezado del PDF
-            doc.setFontSize(18);
-            doc.setTextColor(15, 23, 42); // Slate 900
-            doc.text("AssisTech - Reporte Consolidado de Asistencias", 14, 20);
+            // Crear una ventana de impresión con estilos profesionales
+            const ventanaImpresion = window.open("", "_blank");
             
-            doc.setFontSize(11);
-            doc.setTextColor(100, 116, 139); // Slate 500
-            doc.text(`Periodo: ${primerDiaMes} al ${ultimoDiaMes}`, 14, 27);
-            doc.text(`Fecha de Generación: ${ahora.toLocaleString()}`, 14, 33);
+            const filasTabla = data.map(row => `
+                <tr>
+                    <td>#${row.id_asistencia}</td>
+                    <td>${row.empleado ? `${row.empleado.nombre} ${row.empleado.apellido}` : "N/A"}</td>
+                    <td>${row.empleado?.cedula || "N/A"}</td>
+                    <td>${row.turnos?.tipo_turno || "N/A"}</td>
+                    <td>${row.hora_entrada ? new Date(row.hora_entrada).toLocaleString() : "N/A"}</td>
+                    <td>${row.hora_salida ? new Date(row.hora_salida).toLocaleString() : "N/A"}</td>
+                    <td>${row.horas_trabajadas ? parseFloat(row.horas_trabajadas).toFixed(2) + "h" : "0.00h"}</td>
+                    <td><span class="badge badge-${row.estado_asistencia?.toLowerCase()}">${row.estado_asistencia || "N/A"}</span></td>
+                    <td>${row.estado_salida?.replace(/_/g, " ") || "Trabajando"}</td>
+                </tr>
+            `).join("");
 
-            // Preparar datos para la tabla
-            const headers = [["ID", "Empleado", "Cédula", "Turno", "Entrada", "Salida", "Horas", "Estado", "Resultado"]];
-            const rows = data.map(row => [
-                row.id_asistencia,
-                row.empleado ? `${row.empleado.nombre} ${row.empleado.apellido}` : "N/A",
-                row.empleado?.cedula || "N/A",
-                row.turnos?.tipo_turno || "N/A",
-                row.hora_entrada ? new Date(row.hora_entrada).toLocaleString() : "N/A",
-                row.hora_salida ? new Date(row.hora_salida).toLocaleString() : "N/A",
-                row.horas_trabajadas ? parseFloat(row.horas_trabajadas).toFixed(2) + "h" : "0.00h",
-                row.estado_asistencia || "N/A",
-                row.estado_salida?.replace(/_/g, " ") || "Trabajando"
-            ]);
+            ventanaImpresion.document.write(`
+                <html>
+                <head>
+                    <title>Reporte Consolidado de Asistencias - AssisTech</title>
+                    <style>
+                        body {
+                            font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+                            color: #1e293b;
+                            margin: 40px;
+                            background-color: #fff;
+                        }
+                        .header {
+                            margin-bottom: 30px;
+                            border-bottom: 2px solid #e2e8f0;
+                            padding-bottom: 20px;
+                        }
+                        .header h1 {
+                            font-size: 24px;
+                            margin: 0 0 8px 0;
+                            color: #0f172a;
+                        }
+                        .header p {
+                            font-size: 14px;
+                            color: #64748b;
+                            margin: 0;
+                        }
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin-top: 20px;
+                        }
+                        th, td {
+                            border: 1px solid #cbd5e1;
+                            padding: 10px 12px;
+                            text-align: left;
+                            font-size: 12px;
+                        }
+                        th {
+                            background-color: #0f172a;
+                            color: #ffffff;
+                            font-weight: 600;
+                        }
+                        tr:nth-child(even) {
+                            background-color: #f8fafc;
+                        }
+                        .badge {
+                            display: inline-block;
+                            padding: 4px 8px;
+                            border-radius: 12px;
+                            font-size: 10px;
+                            font-weight: bold;
+                            text-transform: uppercase;
+                        }
+                        .badge-presente { background-color: #dcfce7; color: #15803d; }
+                        .badge-tardanza { background-color: #fef9c3; color: #a16207; }
+                        .badge-ausente { background-color: #fee2e2; color: #b91c1c; }
+                        .badge-permiso { background-color: #e0f2fe; color: #0369a1; }
+                        @media print {
+                            body { margin: 20px; }
+                            button { display: none; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>AssisTech - Reporte Consolidado de Asistencias</h1>
+                        <p>Periodo: ${primerDiaMes} al ${ultimoDiaMes}</p>
+                        <p>Fecha de Generación: ${ahora.toLocaleString()}</p>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Empleado</th>
+                                <th>Cédula</th>
+                                <th>Turno</th>
+                                <th>Entrada</th>
+                                <th>Salida</th>
+                                <th>Horas</th>
+                                <th>Estado</th>
+                                <th>Resultado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${filasTabla}
+                        </tbody>
+                    </table>
+                    <script>
+                        window.onload = function() {
+                            window.print();
+                            setTimeout(function() { window.close(); }, 500);
+                        };
+                    </script>
+                </body>
+                </html>
+            `);
+            ventanaImpresion.document.close();
 
-            // Generar tabla con autoTable
-            doc.autoTable({
-                startY: 40,
-                head: headers,
-                body: rows,
-                theme: "striped",
-                headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255] },
-                styles: { fontSize: 9, cellPadding: 3 },
-                columnStyles: {
-                    0: { cellWidth: 15 },
-                    1: { cellWidth: 45 },
-                    2: { cellWidth: 35 },
-                    3: { cellWidth: 25 },
-                    4: { cellWidth: 40 },
-                    5: { cellWidth: 40 },
-                    6: { cellWidth: 20 },
-                    7: { cellWidth: 25 },
-                    8: { cellWidth: 30 }
-                }
-            });
-
-            // Descargar PDF
-            doc.save(`Reporte_Asistencias_${ahora.getMonth() + 1}_${ahora.getFullYear()}.pdf`);
-
-            Swal.fire("Exportación Exitosa", "El reporte consolidado del mes ha sido descargado en formato PDF.", "success");
+            Swal.fire("Reporte Generado", "Se ha abierto la ventana de impresión. Selecciona 'Guardar como PDF' para descargar el reporte.", "success");
         } catch (err) {
             console.error(err);
             Swal.fire("Error", "No se pudo generar el reporte PDF.", "error");

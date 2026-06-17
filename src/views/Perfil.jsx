@@ -141,7 +141,7 @@ const Perfil = () => {
             Swal.fire({
                 icon: "success",
                 title: "Perfil Actualizado",
-                text: "Tus datos personales han sido actualizados correctamente.",
+                text: "Los datos personales han sido actualizados correctamente.",
                 timer: 1500,
                 showConfirmButton: false
             });
@@ -201,7 +201,7 @@ const Perfil = () => {
             Swal.fire({
                 icon: "success",
                 title: "Documento Subido",
-                text: "El documento se ha agregado a tu expediente digital.",
+                text: "El documento se ha agregado al expediente digital.",
                 timer: 1500,
                 showConfirmButton: false
             });
@@ -220,7 +220,7 @@ const Perfil = () => {
     const handleEliminarDocumento = async (idDoc) => {
         const result = await Swal.fire({
             title: "¿Estás seguro?",
-            text: "Esta acción eliminará permanentemente el documento de tu expediente.",
+            text: "Esta acción eliminará permanentemente el documento del expediente.",
             icon: "warning",
             showCancelButton: true,
             confirmButtonColor: "#dc3545",
@@ -283,7 +283,7 @@ const Perfil = () => {
         );
     }
 
-    const esAdmin = rolUsuarioActual === "Admin";
+    const esAdmin = rolUsuarioActual?.toLowerCase() === "admin";
     const esPropietario = idEmpleadoActual === empleado?.id_empleado;
 
     return (
@@ -299,13 +299,13 @@ const Perfil = () => {
                             <div>
                                 <h2 className="fw-bold mb-0">Expediente Digital Modular</h2>
                                 <p className="text-muted mb-0">
-                                    {esAdmin ? `Supervisión del expediente de ${empleado.nombre} ${empleado.apellido}` : "Gestiona tus documentos personales y credenciales"}
+                                    {esAdmin && !esPropietario ? `Supervisión del expediente de ${empleado.nombre} ${empleado.apellido}` : "Gestiona tus documentos personales y credenciales"}
                                 </p>
                             </div>
                         </div>
                     </Col>
                     <Col md={4} className="text-md-end">
-                        {!esAdmin && esPropietario && !modoEdicion && (
+                        {(esPropietario || esAdmin) && !modoEdicion && (
                             <Button 
                                 onClick={() => setModoEdicion(true)} 
                                 className="btn-premium-primary shadow-sm"
@@ -424,8 +424,8 @@ const Perfil = () => {
 
                 {/* SECCIÓN DEL EXPEDIENTE MODULAR */}
                 <Col lg={8}>
-                    {/* Formulario de carga de documentos (Solo en Modo Edición) */}
-                    {modoEdicion && !esAdmin && (
+                    {/* Formulario de carga de documentos (Solo en Modo Edición para Propietario o Admin) */}
+                    {modoEdicion && (esPropietario || esAdmin) && (
                         <Card className="premium-card border-0 p-4 mb-4">
                             <h5 className="fw-bold mb-3">
                                 <i className="bi bi-cloud-arrow-up-fill text-primary me-2"></i>
@@ -530,7 +530,7 @@ const Perfil = () => {
                     </Modal.Body>
                     <Modal.Footer className="justify-content-between">
                         <div>
-                            {!esAdmin && esPropietario && (
+                            {(esPropietario || esAdmin) && (
                                 <Button 
                                     variant="outline-danger" 
                                     onClick={() => handleEliminarDocumento(docSeleccionado.id_documento)}

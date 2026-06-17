@@ -189,8 +189,8 @@ const NavbarModaExpress = () => {
                                 ))}
                             </NavDropdown>
 
-                            {/* Botón Mi Perfil para Empleados */}
-                            {rolUsuarioActual === "empleado" && (
+                            {/* Botón Mi Perfil para todos los usuarios autenticados */}
+                            {idEmpleadoActual && (
                                 <Nav.Link 
                                     onClick={abrirMiPerfil}
                                     className={`px-3 py-2 rounded-pill small fw-medium transition-all d-flex align-items-center ${location.pathname === "/perfil" ? 'bg-primary bg-opacity-10 text-primary' : 'text-muted hover:bg-light'}`}
@@ -304,7 +304,7 @@ const NavbarModaExpress = () => {
                             </Nav.Link>
                         ))}
 
-                        {rolUsuarioActual === "empleado" && (
+                        {idEmpleadoActual && (
                             <>
                                 <div className="text-uppercase x-small fw-bold text-muted mb-2 px-2 mt-3" style={{ letterSpacing: "1px", fontSize: '0.7rem' }}>
                                     Mi Cuenta

@@ -12,12 +12,12 @@
 }
 
 [data-bs-theme='dark'] {
-  --bg-main: #0f172a;
-  --bg-card: #1e293b;
+  --bg-main: var(--custom-bg-main, #0f172a);
+  --bg-card: var(--custom-bg-card, #1e293b);
   --bg-light: #334155;
   --text-main: #f1f5f9;
   --text-muted: #94a3b8;
-  --accent: #38bdf8;
+  --accent: var(--custom-accent, #38bdf8);
   --border-color: #334155;
   --glass-bg: rgba(15, 23, 42, 0.8);
 }
@@ -80,7 +80,7 @@ body {
 }
 
 .btn-premium-primary {
-  background-color: var(--accent);
+  background-color: var(--accent) !important;
   color: white !important;
   border: none;
   padding: 10px 24px;

@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Container, Nav, Navbar, Offcanvas, Button, NavDropdown } from "react-bootstrap";
-import logo from "../../assets/logo.jpg";
+import logoDefecto from "../../assets/logo.jpg";
 import { supabase } from "../../database/supabaseconfig";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import ChatIA from "../ia/ChatIA";
 
-const NavbarModaExpress = () => {
+const NavbarModaExpress = ({ config }) => {
     const [isDarkMode, setIsDarkMode] = useState(true);
     const [mostrarChatIA, setMostrarChatIA] = useState(false);
     const [menuAbierto, setMenuAbierto] = useState(false);
@@ -16,7 +16,7 @@ const NavbarModaExpress = () => {
     
     const navigate = useNavigate();
     const location = useLocation();
-    const NOMBRE_MARCA = "AssisTech";
+    const NOMBRE_MARCA = config?.nombre_empresa || "AssisTech";
 
     const toggleDarkMode = () => {
         const newMode = !isDarkMode;
@@ -141,6 +141,8 @@ const NavbarModaExpress = () => {
 
     if (location.pathname === "/login") return null;
 
+    const esAdmin = rolUsuarioActual?.toLowerCase() === "admin";
+
     return (
         <>
             <Navbar expand="lg" fixed="top" className="glass-nav py-2" style={{ zIndex: 1030 }}>
@@ -151,8 +153,19 @@ const NavbarModaExpress = () => {
                         className="d-flex align-items-center gap-2 me-4" 
                         style={{ cursor: 'pointer' }}
                     >
-                        <img src={logo} alt="logo" width="36" height="36" className="rounded-circle border border-2 border-primary border-opacity-25" />
-                        <span className="fw-bold fs-5 text-gradient" style={{ background: 'linear-gradient(45deg, var(--text-main), #38bdf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                        {config?.url_logo ? (
+                            <div className="d-flex align-items-center gap-2">
+                                <img 
+                                    src={config.url_logo} 
+                                    alt="logo-empresa" 
+                                    style={{ maxHeight: "36px", width: "auto", objectFit: "contain" }} 
+                                />
+                                <span className="text-muted opacity-50">|</span>
+                            </div>
+                        ) : (
+                            <img src={logoDefecto} alt="logo" width="36" height="36" className="rounded-circle border border-2 border-primary border-opacity-25" />
+                        )}
+                        <span className="fw-bold fs-5 text-gradient" style={{ background: 'linear-gradient(45deg, var(--text-main), var(--accent))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                             {NOMBRE_MARCA}
                         </span>
                     </Navbar.Brand>
@@ -197,6 +210,17 @@ const NavbarModaExpress = () => {
                                 >
                                     <i className="bi bi-person-circle me-2"></i>
                                     <span>Mi Perfil</span>
+                                </Nav.Link>
+                            )}
+
+                            {/* Botón Ajustes (Solo Admin) */}
+                            {esAdmin && (
+                                <Nav.Link 
+                                    onClick={() => manejarNavegacion("/ajustes")}
+                                    className={`px-3 py-2 rounded-pill small fw-medium transition-all d-flex align-items-center ${location.pathname === "/ajustes" ? 'bg-primary bg-opacity-10 text-primary' : 'text-muted hover:bg-light'}`}
+                                >
+                                    <i className="bi bi-sliders me-2"></i>
+                                    <span>Ajustes</span>
                                 </Nav.Link>
                             )}
                         </Nav>
@@ -262,8 +286,16 @@ const NavbarModaExpress = () => {
                 <Offcanvas.Header closeButton className="border-bottom border-opacity-10">
                     <Offcanvas.Title className="d-flex flex-column align-items-start gap-1">
                         <div className="d-flex align-items-center gap-2">
-                            <img src={logo} alt="logo" width="30" height="30" className="rounded-circle" />
-                            <span className="fw-bold text-gradient" style={{ background: 'linear-gradient(45deg, var(--text-main), #38bdf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                            {config?.url_logo ? (
+                                <img 
+                                    src={config.url_logo} 
+                                    alt="logo-empresa" 
+                                    style={{ maxHeight: "30px", width: "auto", objectFit: "contain" }} 
+                                />
+                            ) : (
+                                <img src={logoDefecto} alt="logo" width="30" height="30" className="rounded-circle" />
+                            )}
+                            <span className="fw-bold text-gradient" style={{ background: 'linear-gradient(45deg, var(--text-main), var(--accent))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                                 {NOMBRE_MARCA}
                             </span>
                         </div>
@@ -317,6 +349,16 @@ const NavbarModaExpress = () => {
                                     <span>Mi Perfil</span>
                                 </Nav.Link>
                             </>
+                        )}
+
+                        {esAdmin && (
+                            <Nav.Link 
+                                onClick={() => manejarNavegacion("/ajustes")}
+                                className={`px-3 py-2.5 rounded-3 small fw-medium transition-all d-flex align-items-center gap-3 ${location.pathname === "/ajustes" ? 'bg-primary bg-opacity-10 text-primary' : 'text-muted hover:bg-light'}`}
+                            >
+                                <i className="bi bi-sliders fs-5"></i>
+                                <span>Ajustes</span>
+                            </Nav.Link>
                         )}
                     </Nav>
 

@@ -1,7 +1,10 @@
 import React from "react";
 import { Card, Button, Image, Badge } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
 
-const TarjetaEmpleado = ({ empleados, abrirModalEdicion, abrirModalEliminacion, abrirExpediente }) => {
+const TarjetaEmpleado = ({ empleados, abrirModalEdicion, abrirModalEliminacion }) => {
+    const navigate = useNavigate();
+
     return (
         <div className="row g-4">
             {empleados.map((emp) => (
@@ -63,7 +66,7 @@ const TarjetaEmpleado = ({ empleados, abrirModalEdicion, abrirModalEliminacion, 
                             <Button 
                                 variant="outline-primary" 
                                 className="w-100 rounded-3 py-2 small fw-bold border-2"
-                                onClick={() => abrirExpediente(emp)}
+                                onClick={() => navigate(`/perfil/${emp.id_empleado}`)}
                             >
                                 Ver Expediente Completo
                             </Button>

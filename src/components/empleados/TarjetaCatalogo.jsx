@@ -1,9 +1,31 @@
-import React from "react";
-import { Card, Image, Badge } from "react-bootstrap";
+import React, { useEffect, useState } from "react";
+import { Card, Image, Badge, Button } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "../../database/supabaseconfig";
 
 const TarjetaCatalogo = ({ empleado }) => {
+    const navigate = useNavigate();
+    const [esAdmin, setEsAdmin] = useState(false);
+
+    useEffect(() => {
+        const verificarRol = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                const { data: perfil } = await supabase
+                    .from("usuarios")
+                    .select("rol")
+                    .eq("id_auth", user.id)
+                    .maybeSingle();
+                if (perfil && perfil.rol === "Admin") {
+                    setEsAdmin(true);
+                }
+            }
+        };
+        verificarRol();
+    }, []);
+
     return (
-        <Card className="premium-card h-100 overflow-hidden border-0 shadow-sm">
+        <Card className="premium-card h-100 overflow-hidden border-0 shadow-sm d-flex flex-column">
             {/* Imagen Superior */}
             <div className="position-relative" style={{ height: "220px", overflow: "hidden" }}>
                 <Image
@@ -18,7 +40,7 @@ const TarjetaCatalogo = ({ empleado }) => {
                 </div>
             </div>
 
-            <Card.Body className="p-4">
+            <Card.Body className="p-4 flex-grow-1">
                 <h5 className="fw-bold mb-1 text-premium-main">
                     {empleado.nombre} {empleado.apellido}
                 </h5>
@@ -40,6 +62,18 @@ const TarjetaCatalogo = ({ empleado }) => {
                     </div>
                 </div>
             </Card.Body>
+
+            {esAdmin && (
+                <Card.Footer className="bg-transparent border-0 p-4 pt-0">
+                    <Button 
+                        variant="outline-primary" 
+                        className="w-100 rounded-3 py-2 small fw-bold border-2"
+                        onClick={() => navigate(`/perfil/${empleado.id_empleado}`)}
+                    >
+                        📁 Ver expediente completo
+                    </Button>
+                </Card.Footer>
+            )}
         </Card>
     );
 };

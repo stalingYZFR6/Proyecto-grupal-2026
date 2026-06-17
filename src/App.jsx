@@ -21,6 +21,18 @@ const AppContent = () => {
   const location = useLocation();
   const esLogin = location.pathname === "/login";
 
+  // Función para detectar si un color hexadecimal es claro o oscuro
+  const esColorClaro = (hex) => {
+    if (!hex) return false;
+    const c = hex.substring(1);      // Eliminar el #
+    const rgb = parseInt(c, 16);     // Convertir a decimal
+    const r = (rgb >> 16) & 0xff;    // Extraer rojo
+    const g = (rgb >>  8) & 0xff;    // Extraer verde
+    const b = (rgb >>  0) & 0xff;    // Extraer azul
+    const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b; // Luminosidad relativa
+    return luma > 128;
+  };
+
   const aplicarConfiguracionVisual = async () => {
     try {
       const { data, error } = await supabase
@@ -32,10 +44,27 @@ const AppContent = () => {
       if (error) throw error;
 
       if (data) {
-        // Inyectar variables CSS dinámicamente en el :root
-        document.documentElement.style.setProperty('--accent', data.color_primario);
-        document.documentElement.style.setProperty('--text-muted', data.color_secundario);
-        document.documentElement.style.setProperty('--bg-main', data.color_fondo);
+        const root = document.documentElement;
+
+        // Inyectar variables principales
+        root.style.setProperty('--accent', data.color_primario);
+        root.style.setProperty('--text-muted', data.color_secundario);
+        root.style.setProperty('--bg-main', data.color_fondo);
+
+        // Motor de contraste inteligente: Adaptar textos y tarjetas según el fondo
+        if (esColorClaro(data.color_fondo)) {
+          root.style.setProperty('--text-main', '#1e293b');
+          root.style.setProperty('--bg-card', '#ffffff');
+          root.style.setProperty('--bg-light', '#f1f5f9');
+          root.style.setProperty('--border-color', '#e2e8f0');
+          root.style.setProperty('--glass-bg', 'rgba(255, 255, 255, 0.7)');
+        } else {
+          root.style.setProperty('--text-main', '#f1f5f9');
+          root.style.setProperty('--bg-card', '#1e293b');
+          root.style.setProperty('--bg-light', '#334155');
+          root.style.setProperty('--border-color', '#334155');
+          root.style.setProperty('--glass-bg', 'rgba(15, 23, 42, 0.8)');
+        }
       }
     } catch (err) {
       console.error("Error al aplicar configuración visual:", err);

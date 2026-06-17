@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './App.css'
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import Encabezado from "./components/navegacion/Encabezado";
@@ -11,13 +11,46 @@ import Turnos from './views/Turnos';
 import Usuarios from './views/Usuarios';
 import Login from "./views/Login";
 import Perfil from "./views/Perfil";
+import Ajustes from "./views/Ajustes";
 import RutaProtegida from "./components/rutas/RutaProtegida";
 import Pagina404 from "./views/Pagina404";
 import Dashboard from './views/Dashboard.jsx';
+import { supabase } from "./database/supabaseconfig";
 
 const AppContent = () => {
   const location = useLocation();
   const esLogin = location.pathname === "/login";
+
+  const aplicarConfiguracionVisual = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("configuracion_sistema")
+        .select("*")
+        .eq("id", 1)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (data) {
+        // Inyectar variables CSS dinámicamente en el :root
+        document.documentElement.style.setProperty('--accent', data.color_primario);
+        document.documentElement.style.setProperty('--text-muted', data.color_secundario);
+        document.documentElement.style.setProperty('--bg-main', data.color_fondo);
+      }
+    } catch (err) {
+      console.error("Error al aplicar configuración visual:", err);
+    }
+  };
+
+  useEffect(() => {
+    aplicarConfiguracionVisual();
+
+    // Escuchar cambios en tiempo real
+    window.addEventListener("system-config-changed", aplicarConfiguracionVisual);
+    return () => {
+      window.removeEventListener("system-config-changed", aplicarConfiguracionVisual);
+    };
+  }, []);
 
   return (
     <>
@@ -38,6 +71,7 @@ const AppContent = () => {
           <Route path="/usuarios" element={<RutaProtegida><Usuarios /></RutaProtegida>} />
           <Route path="/perfil" element={<RutaProtegida><Perfil /></RutaProtegida>} />
           <Route path="/perfil/:id" element={<RutaProtegida><Perfil /></RutaProtegida>} />
+          <Route path="/ajustes" element={<RutaProtegida><Ajustes /></RutaProtegida>} />
 
           {/* 404 */}
           <Route path="*" element={<Pagina404 />} />

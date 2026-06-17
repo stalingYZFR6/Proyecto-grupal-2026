@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Container, Nav, Navbar, Offcanvas, Button, NavDropdown } from "react-bootstrap";
-import logoDefecto from "../../assets/logo.jpg";
+import logo from "../../assets/logo.jpg";
 import { supabase } from "../../database/supabaseconfig";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import ChatIA from "../ia/ChatIA";
@@ -14,14 +14,9 @@ const NavbarModaExpress = () => {
     const [rolUsuarioActual, setRolUsuarioActual] = useState("");
     const [idEmpleadoActual, setIdEmpleadoActual] = useState(null);
     
-    // Estados de Marca Blanca
-    const [marcaBlanca, setMarcaBlanca] = useState({
-        nombre_empresa: "AssisTech",
-        url_logo: ""
-    });
-    
     const navigate = useNavigate();
     const location = useLocation();
+    const NOMBRE_MARCA = "AssisTech";
 
     const toggleDarkMode = () => {
         const newMode = !isDarkMode;
@@ -36,24 +31,6 @@ const NavbarModaExpress = () => {
         setIsDarkMode(shouldBeDark);
         document.documentElement.setAttribute("data-bs-theme", shouldBeDark ? "dark" : "light");
     }, []);
-
-    const obtenerDatosMarcaBlanca = async () => {
-        try {
-            const { data, error } = await supabase
-                .from("configuracion_sistema")
-                .select("nombre_empresa, url_logo")
-                .eq("id", 1)
-                .maybeSingle();
-
-            if (error) throw error;
-
-            if (data) {
-                setMarcaBlanca(data);
-            }
-        } catch (err) {
-            console.error("Error al obtener marca blanca:", err);
-        }
-    };
 
     // Obtener información del usuario logueado y su empleado asociado
     useEffect(() => {
@@ -100,15 +77,7 @@ const NavbarModaExpress = () => {
         };
 
         obtenerDatosUsuario();
-        obtenerDatosMarcaBlanca();
     }, [location.pathname]);
-
-    useEffect(() => {
-        window.addEventListener("system-config-changed", obtenerDatosMarcaBlanca);
-        return () => {
-            window.removeEventListener("system-config-changed", obtenerDatosMarcaBlanca);
-        };
-    }, []);
 
     const manejarTeclaEscape = useCallback((evento) => {
         if (evento.key === "Escape") {
@@ -172,31 +141,19 @@ const NavbarModaExpress = () => {
 
     if (location.pathname === "/login") return null;
 
-    const esAdmin = rolUsuarioActual?.toLowerCase() === "admin";
-
     return (
         <>
             <Navbar expand="lg" fixed="top" className="glass-nav py-2" style={{ zIndex: 1030 }}>
                 <Container className="d-flex justify-content-between align-items-center">
-                    {/* Logo y Marca Blanca Dinámica */}
+                    {/* Logo y Marca */}
                     <Navbar.Brand 
                         onClick={() => manejarNavegacion("/")} 
                         className="d-flex align-items-center gap-2 me-4" 
                         style={{ cursor: 'pointer' }}
                     >
-                        <img 
-                            src={marcaBlanca.url_logo || logoDefecto} 
-                            alt="logo" 
-                            width="36" 
-                            height="36" 
-                            className="rounded-circle border border-2 border-primary border-opacity-25 object-fit-cover" 
-                        />
+                        <img src={logo} alt="logo" width="36" height="36" className="rounded-circle border border-2 border-primary border-opacity-25" />
                         <span className="fw-bold fs-5 text-gradient" style={{ background: 'linear-gradient(45deg, var(--text-main), #38bdf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                            {marcaBlanca.nombre_empresa !== "AssisTech" ? (
-                                <>AssisTech <span className="text-muted fw-light mx-1">X</span> {marcaBlanca.nombre_empresa}</>
-                            ) : (
-                                "AssisTech"
-                            )}
+                            {NOMBRE_MARCA}
                         </span>
                     </Navbar.Brand>
 
@@ -266,12 +223,6 @@ const NavbarModaExpress = () => {
                                 <i className="bi bi-robot text-primary"></i> Asistente IA
                             </NavDropdown.Item>
                             
-                            {esAdmin && (
-                                <NavDropdown.Item onClick={() => manejarNavegacion("/ajustes")} className="d-flex align-items-center gap-2 py-2">
-                                    <i className="bi bi-palette-fill text-success"></i> Ajustes de Marca
-                                </NavDropdown.Item>
-                            )}
-                            
                             <NavDropdown.Divider />
                             
                             <NavDropdown.Header className="small text-uppercase fw-bold opacity-50">Preferencias</NavDropdown.Header>
@@ -311,9 +262,9 @@ const NavbarModaExpress = () => {
                 <Offcanvas.Header closeButton className="border-bottom border-opacity-10">
                     <Offcanvas.Title className="d-flex flex-column align-items-start gap-1">
                         <div className="d-flex align-items-center gap-2">
-                            <img src={marcaBlanca.url_logo || logoDefecto} alt="logo" width="30" height="30" className="rounded-circle object-fit-cover" />
+                            <img src={logo} alt="logo" width="30" height="30" className="rounded-circle" />
                             <span className="fw-bold text-gradient" style={{ background: 'linear-gradient(45deg, var(--text-main), #38bdf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                                {marcaBlanca.nombre_empresa}
+                                {NOMBRE_MARCA}
                             </span>
                         </div>
                         {usuarioInfo.email && (
@@ -381,17 +332,6 @@ const NavbarModaExpress = () => {
                             <i className="bi bi-robot fs-5 text-primary"></i>
                             <span className="small fw-semibold">Asistente IA</span>
                         </Button>
-
-                        {esAdmin && (
-                            <Button 
-                                variant="light" 
-                                className="w-100 mb-2 py-2.5 rounded-3 d-flex align-items-center justify-content-start gap-3 bg-premium-light border-0 text-premium-main"
-                                onClick={() => manejarNavegacion("/ajustes")}
-                            >
-                                <i className="bi bi-palette-fill fs-5 text-success"></i>
-                                <span className="small fw-semibold">Ajustes de Marca</span>
-                            </Button>
-                        )}
 
                         <Button 
                             variant="light" 

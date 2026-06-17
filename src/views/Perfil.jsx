@@ -16,6 +16,7 @@ const Perfil = () => {
     const [documentos, setDocumentos] = useState([]);
     const [rolUsuarioActual, setRolUsuarioActual] = useState("");
     const [idEmpleadoActual, setIdEmpleadoActual] = useState(null);
+    const [rolEmpleado, setRolEmpleado] = useState("");
 
     // Estados de Edición
     const [modoEdicion, setModoEdicion] = useState(false);
@@ -77,7 +78,24 @@ const Perfil = () => {
                 archivo_imagen: null
             });
 
-            // 4. Cargar documentos del expediente
+            // 4. Cargar rol del empleado desde la tabla usuarios
+            const { data: usrData } = await supabase
+                .from("usuarios")
+                .select("rol")
+                .eq("id_empleado", targetId)
+                .maybeSingle();
+            
+            if (usrData?.rol) {
+                const r = usrData.rol.toLowerCase();
+                if (r === "admin") setRolEmpleado("Administrador");
+                else if (r === "supervisor") setRolEmpleado("Supervisor");
+                else if (r === "empleado") setRolEmpleado("Empleado");
+                else setRolEmpleado(usrData.rol);
+            } else {
+                setRolEmpleado("Sin cuenta de usuario");
+            }
+
+            // 5. Cargar documentos del expediente
             const { data: docsData, error: docsError } = await supabase
                 .from("documentos_empleado")
                 .select("*")
@@ -404,6 +422,10 @@ const Perfil = () => {
                                 <div className="mb-3">
                                     <span className="text-muted small d-block">Cédula / Identificación</span>
                                     <strong className="text-premium-main">{empleado.cedula}</strong>
+                                </div>
+                                <div className="mb-3">
+                                    <span className="text-muted small d-block">Rol en el Sistema</span>
+                                    <strong className="text-premium-main text-capitalize">{rolEmpleado}</strong>
                                 </div>
                                 <div className="mb-3">
                                     <span className="text-muted small d-block">Correo Electrónico</span>

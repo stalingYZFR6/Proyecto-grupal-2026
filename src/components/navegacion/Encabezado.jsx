@@ -114,6 +114,15 @@ const NavbarModaExpress = () => {
         navigate("/perfil");
     };
 
+    const formatearRol = (rol) => {
+        if (!rol) return "";
+        const r = rol.toLowerCase();
+        if (r === "admin") return "Administrador";
+        if (r === "supervisor") return "Supervisor";
+        if (r === "empleado") return "Empleado";
+        return rol.charAt(0).toUpperCase() + rol.slice(1);
+    };
+
     // Rutas principales (Siempre visibles)
     const rutasPrincipales = [
         { path: "/", label: "Inicio", icon: "bi-grid-1x2" },
@@ -207,7 +216,7 @@ const NavbarModaExpress = () => {
                         {/* Saludo personalizado */}
                         {usuarioInfo.email && (
                             <span className="small text-muted">
-                                Hola, <strong className="text-premium-main">{usuarioInfo.nombreCompleto || usuarioInfo.email}</strong>
+                                Hola, <strong className="text-premium-main">{usuarioInfo.nombreCompleto || usuarioInfo.email} {rolUsuarioActual && `(${formatearRol(rolUsuarioActual)})`}</strong>
                             </span>
                         )}
 
@@ -278,7 +287,7 @@ const NavbarModaExpress = () => {
                         </div>
                         {usuarioInfo.email && (
                             <span className="x-small text-muted mt-1" style={{ fontSize: '0.75rem' }}>
-                                Hola, <strong>{usuarioInfo.nombreCompleto || usuarioInfo.email}</strong>
+                                Hola, <strong>{usuarioInfo.nombreCompleto || usuarioInfo.email} {rolUsuarioActual && `(${formatearRol(rolUsuarioActual)})`}</strong>
                             </span>
                         )}
                     </Offcanvas.Title>

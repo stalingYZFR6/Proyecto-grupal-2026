@@ -24,10 +24,29 @@ const Empleados = () => {
     const [empleadoEditar, setEmpleadoEditar] = useState(null);
     const [mostrarModalEliminacion, setMostrarModalEliminacion] = useState(false);
     const [empleadoAEliminar, setEmpleadoAEliminar] = useState(null);
+    const [rolUsuario, setRolUsuario] = useState("");
     
     // Estados para el Expediente
     const [mostrarModalExpediente, setMostrarModalExpediente] = useState(false);
     const [empleadoExpediente, setEmpleadoExpediente] = useState(null);
+
+    const obtenerRol = async () => {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                const { data: perfil } = await supabase
+                    .from("usuarios")
+                    .select("rol")
+                    .eq("id_auth", user.id)
+                    .maybeSingle();
+                if (perfil) {
+                    setRolUsuario(perfil.rol);
+                }
+            }
+        } catch (err) {
+            console.error("Error al obtener rol:", err);
+        }
+    };
 
     const cargarEmpleados = async () => {
         try {
@@ -42,7 +61,10 @@ const Empleados = () => {
         }
     };
 
-    useEffect(() => { cargarEmpleados(); }, []);
+    useEffect(() => { 
+        obtenerRol();
+        cargarEmpleados(); 
+    }, []);
 
     const subirImagen = async (archivo) => {
         if (!archivo) return null;
@@ -162,6 +184,18 @@ const Empleados = () => {
         setEmpleadoExpediente(emp);
         setMostrarModalExpediente(true);
     };
+
+    if (rolUsuario === "empleado") {
+        return (
+            <Container className="py-5 mt-4 text-center">
+                <div className="bg-danger bg-opacity-10 p-4 rounded-4 d-inline-block mb-4">
+                    <i className="bi bi-shield-slash text-danger display-1"></i>
+                </div>
+                <h2 className="fw-bold">Acceso Denegado</h2>
+                <p className="text-muted">No tienes permisos para acceder a la gestión de personal.</p>
+            </Container>
+        );
+    }
 
     const empleadosFiltrados = empleados.filter((emp) =>
         `${emp.nombre} ${emp.apellido}`.toLowerCase().includes(busqueda.toLowerCase()) ||

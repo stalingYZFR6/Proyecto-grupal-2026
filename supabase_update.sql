@@ -21,6 +21,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 ALTER TABLE public.usuarios ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.asistencias ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.jornadas_asistencia ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.empleado ENABLE ROW LEVEL SECURITY;
 
 -- ====================================================================
 -- 3. POLÍTICAS PARA LA TABLA public.usuarios
@@ -85,3 +86,27 @@ ON public.jornadas_asistencia
 FOR SELECT 
 TO authenticated 
 USING (true);
+
+-- ====================================================================
+-- 6. POLÍTICAS PARA LA TABLA public.empleado
+-- ====================================================================
+DROP POLICY IF EXISTS "Admin tiene acceso total a empleados" ON public.empleado;
+CREATE POLICY "Admin tiene acceso total a empleados" 
+ON public.empleado 
+FOR ALL 
+USING (public.get_current_user_role() = 'Admin');
+
+DROP POLICY IF EXISTS "Todos pueden ver los empleados" ON public.empleado;
+CREATE POLICY "Todos pueden ver los empleados" 
+ON public.empleado 
+FOR SELECT 
+TO authenticated 
+USING (true);
+
+DROP POLICY IF EXISTS "Empleados solo pueden actualizar su propio perfil" ON public.empleado;
+CREATE POLICY "Empleados solo pueden actualizar su propio perfil" 
+ON public.empleado 
+FOR UPDATE 
+USING (
+    id_empleado = (SELECT id_empleado FROM public.usuarios WHERE id_auth = auth.uid() LIMIT 1)
+);

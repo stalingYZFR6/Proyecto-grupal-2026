@@ -5,12 +5,20 @@ import logo from "../../assets/logo.jpg";
 import { supabase } from "../../database/supabaseconfig";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import ChatIA from "../ia/ChatIA";
+import ModalEdicionEmpleado from "../empleados/ModalEdicionEmpleado";
+import Swal from "sweetalert2";
 
 const NavbarModaExpress = () => {
     const [isDarkMode, setIsDarkMode] = useState(true);
     const [mostrarChatIA, setMostrarChatIA] = useState(false);
     const [menuAbierto, setMenuAbierto] = useState(false);
     const [usuarioInfo, setUsuarioInfo] = useState({ email: "", nombreCompleto: "" });
+    const [rolUsuarioActual, setRolUsuarioActual] = useState("");
+    const [idEmpleadoActual, setIdEmpleadoActual] = useState(null);
+
+    // Estados para "Mi Perfil"
+    const [mostrarModalPerfil, setMostrarModalPerfil] = useState(false);
+    const [empleadoPerfil, setEmpleadoPerfil] = useState(null);
     
     const navigate = useNavigate();
     const location = useLocation();
@@ -40,6 +48,7 @@ const NavbarModaExpress = () => {
                         .from("usuarios")
                         .select(`
                             rol,
+                            id_empleado,
                             empleado (
                                 nombre,
                                 apellido
@@ -48,19 +57,25 @@ const NavbarModaExpress = () => {
                         .eq("id_auth", user.id)
                         .maybeSingle();
 
-                    if (perfil && perfil.empleado) {
-                        setUsuarioInfo({
-                            email: user.email,
-                            nombreCompleto: `${perfil.empleado.nombre} ${perfil.empleado.apellido}`
-                        });
-                    } else {
-                        setUsuarioInfo({
-                            email: user.email,
-                            nombreCompleto: ""
-                        });
+                    if (perfil) {
+                        setRolUsuarioActual(perfil.rol);
+                        setIdEmpleadoActual(perfil.id_empleado);
+                        if (perfil.empleado) {
+                            setUsuarioInfo({
+                                email: user.email,
+                                nombreCompleto: `${perfil.empleado.nombre} ${perfil.empleado.apellido}`
+                            });
+                        } else {
+                            setUsuarioInfo({
+                                email: user.email,
+                                nombreCompleto: ""
+                            });
+                        }
                     }
                 } else {
                     setUsuarioInfo({ email: "", nombreCompleto: "" });
+                    setRolUsuarioActual("");
+                    setIdEmpleadoActual(null);
                 }
             } catch (err) {
                 console.error("Error al obtener datos del usuario:", err);
@@ -91,10 +106,97 @@ const NavbarModaExpress = () => {
             await supabase.auth.signOut();
             localStorage.removeItem("usuario-supabase");
             setUsuarioInfo({ email: "", nombreCompleto: "" });
+            setRolUsuarioActual("");
+            setIdEmpleadoActual(null);
             setMenuAbierto(false);
             navigate("/login");
         } catch (err) {
             console.error("Error cerrando sesión:", err.message);
+        }
+    };
+
+    // Abrir el perfil del empleado actual
+    const abrirMiPerfil = async () => {
+        if (!idEmpleadoActual) return;
+        try {
+            const { data, error } = await supabase
+                .from("empleado")
+                .select("*")
+                .eq("id_empleado", idEmpleadoActual)
+                .single();
+
+            if (error) throw error;
+            setEmpleadoPerfil(data);
+            setMostrarModalPerfil(true);
+            setMenuAbierto(false);
+        } catch (err) {
+            console.error("Error al cargar perfil:", err);
+            Swal.fire("Error", "No se pudo cargar tu información de perfil.", "error");
+        }
+    };
+
+    const subirImagen = async (archivo) => {
+        if (!archivo) return null;
+        const extension = archivo.name.split('.').pop() || 'png';
+        const nombreArchivo = `${Date.now()}.${extension}`;
+
+        const { data, error } = await supabase.storage
+            .from("imagenes_empleados")
+            .upload(nombreArchivo, archivo, {
+                cacheControl: '3600',
+                upsert: true,
+                contentType: archivo.type
+            });
+
+        if (error) throw error;
+
+        const { data: urlData } = supabase.storage
+            .from("imagenes_empleados")
+            .getPublicUrl(nombreArchivo);
+
+        return urlData.publicUrl;
+    };
+
+    const guardarPerfil = async () => {
+        try {
+            let urlImagen = empleadoPerfil.url_imagen;
+            if (empleadoPerfil.archivo_imagen) {
+                const nuevaUrl = await subirImagen(empleadoPerfil.archivo_imagen);
+                if (nuevaUrl) urlImagen = nuevaUrl;
+            }
+
+            const { error } = await supabase
+                .from("empleado")
+                .update({
+                    nombre: empleadoPerfil.nombre,
+                    apellido: empleadoPerfil.apellido,
+                    cedula: empleadoPerfil.cedula,
+                    correo: empleadoPerfil.correo,
+                    telefono: empleadoPerfil.telefono,
+                    direccion: empleadoPerfil.direccion,
+                    url_imagen: urlImagen
+                })
+                .eq("id_empleado", empleadoPerfil.id_empleado);
+
+            if (error) throw error;
+
+            setMostrarModalPerfil(false);
+            Swal.fire({
+                icon: "success",
+                title: "Perfil Actualizado",
+                text: "Tus datos personales han sido actualizados correctamente.",
+                timer: 2000,
+                showConfirmButton: false
+            });
+
+            // Actualizar saludo en el navbar
+            setUsuarioInfo(prev => ({
+                ...prev,
+                nombreCompleto: `${empleadoPerfil.nombre} ${empleadoPerfil.apellido}`
+            }));
+        } catch (err) {
+            console.error("Error al guardar perfil:", err);
+            Swal.fire("Error", err.message || "No se pudo actualizar el perfil.", "error");
         }
     };
 
@@ -113,6 +215,15 @@ const NavbarModaExpress = () => {
         { path: "/turnos", label: "Turnos", icon: "bi-clock" },
         { path: "/usuarios", label: "Usuarios", icon: "bi-person-gear" },
     ];
+
+    // Filtrar rutas de gestión para empleados
+    const rutasGestionFiltradas = rutasGestion.filter(item => {
+        if (rolUsuarioActual === "empleado") {
+            // El empleado solo puede ver el Catálogo y las Incidencias
+            return item.path !== "/empleados" && item.path !== "/usuarios";
+        }
+        return true;
+    });
 
     if (location.pathname === "/login") return null;
 
@@ -152,7 +263,7 @@ const NavbarModaExpress = () => {
                                 id="nav-gestion-dropdown"
                                 className="px-2 small fw-medium text-muted rounded-pill hover:bg-light transition-all"
                             >
-                                {rutasGestion.map((item) => (
+                                {rutasGestionFiltradas.map((item) => (
                                     <NavDropdown.Item 
                                         key={item.path}
                                         onClick={() => manejarNavegacion(item.path)}
@@ -163,6 +274,17 @@ const NavbarModaExpress = () => {
                                     </NavDropdown.Item>
                                 ))}
                             </NavDropdown>
+
+                            {/* Botón Mi Perfil para Empleados */}
+                            {rolUsuarioActual === "empleado" && (
+                                <Nav.Link 
+                                    onClick={abrirMiPerfil}
+                                    className="px-3 py-2 rounded-pill small fw-medium text-muted hover:bg-light transition-all d-flex align-items-center"
+                                >
+                                    <i className="bi bi-person-circle me-2"></i>
+                                    <span>Mi Perfil</span>
+                                </Nav.Link>
+                            )}
                         </Nav>
                     </div>
 
@@ -243,7 +365,7 @@ const NavbarModaExpress = () => {
                         <div className="text-uppercase x-small fw-bold text-muted mb-2 px-2 mt-2" style={{ letterSpacing: "1px", fontSize: '0.7rem' }}>
                             Navegación Principal
                         </div>
-                        {[...rutasPrincipales, ...rutasGestion].map((item) => (
+                        {rutasPrincipales.map((item) => (
                             <Nav.Link 
                                 key={item.path} 
                                 onClick={() => manejarNavegacion(item.path)}
@@ -253,6 +375,35 @@ const NavbarModaExpress = () => {
                                 <span>{item.label}</span>
                             </Nav.Link>
                         ))}
+
+                        <div className="text-uppercase x-small fw-bold text-muted mb-2 px-2 mt-3" style={{ letterSpacing: "1px", fontSize: '0.7rem' }}>
+                            Gestión
+                        </div>
+                        {rutasGestionFiltradas.map((item) => (
+                            <Nav.Link 
+                                key={item.path} 
+                                onClick={() => manejarNavegacion(item.path)}
+                                className={`px-3 py-2.5 rounded-3 small fw-medium transition-all d-flex align-items-center gap-3 ${location.pathname === item.path ? 'bg-primary bg-opacity-10 text-primary' : 'text-muted hover:bg-light'}`}
+                            >
+                                <i className={`bi ${item.icon} fs-5`}></i>
+                                <span>{item.label}</span>
+                            </Nav.Link>
+                        ))}
+
+                        {rolUsuarioActual === "empleado" && (
+                            <>
+                                <div className="text-uppercase x-small fw-bold text-muted mb-2 px-2 mt-3" style={{ letterSpacing: "1px", fontSize: '0.7rem' }}>
+                                    Mi Cuenta
+                                </div>
+                                <Nav.Link 
+                                    onClick={abrirMiPerfil}
+                                    className="px-3 py-2.5 rounded-3 small fw-medium text-muted hover:bg-light transition-all d-flex align-items-center gap-3"
+                                >
+                                    <i className="bi bi-person-circle fs-5"></i>
+                                    <span>Mi Perfil</span>
+                                </Nav.Link>
+                            </>
+                        )}
                     </Nav>
 
                     <div className="mt-auto pt-4 border-top border-opacity-10">
@@ -290,6 +441,18 @@ const NavbarModaExpress = () => {
             </Offcanvas>
 
             <ChatIA mostrar={mostrarChatIA} onCerrar={() => setMostrarChatIA(false)} />
+
+            {/* Modal de Edición de Perfil */}
+            {empleadoPerfil && (
+                <ModalEdicionEmpleado
+                    mostrarModalEdicion={mostrarModalPerfil}
+                    setMostrarModalEdicion={setMostrarModalPerfil}
+                    empleadoEditar={empleadoPerfil}
+                    setEmpleadoEditar={setEmpleadoPerfil}
+                    manejoCambioInputEdicion={(e) => setEmpleadoPerfil({ ...empleadoPerfil, [e.target.name]: e.target.value })}
+                    actualizarEmpleado={guardarPerfil}
+                />
+            )}
         </>
     );
 };

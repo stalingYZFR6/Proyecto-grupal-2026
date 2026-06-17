@@ -121,21 +121,17 @@ const NavbarModaExpress = () => {
         { path: "/asistencias", label: "Asistencia", icon: "bi-calendar-check" },
     ];
 
-    // Rutas de Gestión (En un dropdown)
+    // Rutas de Gestión (En un dropdown) - Se removió Ajustes de aquí
     const rutasGestion = [
         { path: "/empleados", label: "Personal", icon: "bi-people" },
         { path: "/catalogo", label: "Catálogo", icon: "bi-journal-bookmark" },
         { path: "/incidencias", label: "Incidencias", icon: "bi-exclamation-circle" },
         { path: "/turnos", label: "Turnos", icon: "bi-clock" },
         { path: "/usuarios", label: "Usuarios", icon: "bi-person-gear" },
-        { path: "/ajustes", label: "Ajustes", icon: "bi-gear" },
     ];
 
     // Filtrar rutas de gestión para empleados y supervisores
     const rutasGestionFiltradas = rutasGestion.filter(item => {
-        if (item.path === "/ajustes") {
-            return rolUsuarioActual?.toLowerCase() === "admin";
-        }
         if (rolUsuarioActual?.toLowerCase() === "empleado") {
             // El empleado solo puede ver el Catálogo y las Incidencias
             return item.path !== "/empleados" && item.path !== "/usuarios";
@@ -235,6 +231,15 @@ const NavbarModaExpress = () => {
                                 Modo {isDarkMode ? "Claro" : "Oscuro"}
                             </NavDropdown.Item>
                             
+                            {rolUsuarioActual?.toLowerCase() === "admin" && (
+                                <>
+                                    <NavDropdown.Divider />
+                                    <NavDropdown.Item onClick={() => manejarNavegacion("/ajustes")} className="d-flex align-items-center gap-2 py-2">
+                                        <i className="bi bi-sliders text-primary"></i> Ajustes Avanzados
+                                    </NavDropdown.Item>
+                                </>
+                            )}
+
                             <NavDropdown.Divider />
                             
                             <NavDropdown.Item onClick={cerrarSesion} className="d-flex align-items-center gap-2 py-2 text-danger">
@@ -345,6 +350,17 @@ const NavbarModaExpress = () => {
                             <i className={`bi ${isDarkMode ? "bi-sun" : "bi-moon"} fs-5 text-warning`}></i>
                             <span className="small fw-semibold">Modo {isDarkMode ? "Claro" : "Oscuro"}</span>
                         </Button>
+
+                        {rolUsuarioActual?.toLowerCase() === "admin" && (
+                            <Button 
+                                variant="light" 
+                                className="w-100 mb-3 py-2.5 rounded-3 d-flex align-items-center justify-content-start gap-3 bg-premium-light border-0 text-premium-main"
+                                onClick={() => manejarNavegacion("/ajustes")}
+                            >
+                                <i className="bi bi-sliders fs-5 text-primary"></i>
+                                <span className="small fw-semibold">Ajustes Avanzados</span>
+                            </Button>
+                        )}
 
                         <Button 
                             variant="danger" 

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Card, Form, Button, Spinner, Alert, Badge } from "react-bootstrap";
+import { Container, Row, Col, Card, Form, Button, Spinner, Alert } from "react-bootstrap";
 import { supabase } from "../database/supabaseconfig";
 import Swal from "sweetalert2";
+import { jsPDF } from "jspdf";
+import "jspdf-autotable";
 
 const Ajustes = () => {
     const [loading, setLoading] = useState(true);
@@ -186,7 +188,7 @@ const Ajustes = () => {
         }
     };
 
-    // --- UX: Exportación Masiva de Respaldos ---
+    // --- UX: Exportación Masiva de Respaldos en PDF ---
     const exportarDatosMes = async () => {
         try {
             setExportando(true);
@@ -217,36 +219,61 @@ const Ajustes = () => {
                 return;
             }
 
-            // Generar CSV con BOM para compatibilidad con Excel en Español
-            let csvContent = "\uFEFF";
-            csvContent += "ID Asistencia,Empleado,Cédula,Turno,Hora Entrada,Hora Salida,Horas Trabajadas,Estado Asistencia,Estado Salida\n";
+            // Crear documento PDF
+            const doc = new jsPDF({ orientation: "landscape" });
 
-            data.forEach(row => {
-                const empleado = row.empleado ? `${row.empleado.nombre} ${row.empleado.apellido}` : "N/A";
-                const cedula = row.empleado?.cedula || "N/A";
-                const turno = row.turnos?.tipo_turno || "N/A";
-                const entrada = row.hora_entrada ? new Date(row.hora_entrada).toLocaleString() : "N/A";
-                const salida = row.hora_salida ? new Date(row.hora_salida).toLocaleString() : "N/A";
-                const horas = row.horas_trabajadas ? parseFloat(row.horas_trabajadas).toFixed(2) : "0.00";
-                const estadoAsist = row.estado_asistencia || "N/A";
-                const estadoSal = row.estado_salida || "Trabajando";
+            // Título y Encabezado del PDF
+            doc.setFontSize(18);
+            doc.setTextColor(15, 23, 42); // Slate 900
+            doc.text("AssisTech - Reporte Consolidado de Asistencias", 14, 20);
+            
+            doc.setFontSize(11);
+            doc.setTextColor(100, 116, 139); // Slate 500
+            doc.text(`Periodo: ${primerDiaMes} al ${ultimoDiaMes}`, 14, 27);
+            doc.text(`Fecha de Generación: ${ahora.toLocaleString()}`, 14, 33);
 
-                csvContent += `"${row.id_asistencia}","${empleado}","${cedula}","${turno}","${entrada}","${salida}","${horas}","${estadoAsist}","${estadoSal}"\n`;
+            // Preparar datos para la tabla
+            const headers = [["ID", "Empleado", "Cédula", "Turno", "Entrada", "Salida", "Horas", "Estado", "Resultado"]];
+            const rows = data.map(row => [
+                row.id_asistencia,
+                row.empleado ? `${row.empleado.nombre} ${row.empleado.apellido}` : "N/A",
+                row.empleado?.cedula || "N/A",
+                row.turnos?.tipo_turno || "N/A",
+                row.hora_entrada ? new Date(row.hora_entrada).toLocaleString() : "N/A",
+                row.hora_salida ? new Date(row.hora_salida).toLocaleString() : "N/A",
+                row.horas_trabajadas ? parseFloat(row.horas_trabajadas).toFixed(2) + "h" : "0.00h",
+                row.estado_asistencia || "N/A",
+                row.estado_salida?.replace(/_/g, " ") || "Trabajando"
+            ]);
+
+            // Generar tabla con autoTable
+            doc.autoTable({
+                startY: 40,
+                head: headers,
+                body: rows,
+                theme: "striped",
+                headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255] },
+                styles: { fontSize: 9, cellPadding: 3 },
+                columnStyles: {
+                    0: { cellWidth: 15 },
+                    1: { cellWidth: 45 },
+                    2: { cellWidth: 35 },
+                    3: { cellWidth: 25 },
+                    4: { cellWidth: 40 },
+                    5: { cellWidth: 40 },
+                    6: { cellWidth: 20 },
+                    7: { cellWidth: 25 },
+                    8: { cellWidth: 30 }
+                }
             });
 
-            const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.setAttribute("href", url);
-            link.setAttribute("download", `Respaldo_Asistencias_${ahora.getMonth() + 1}_${ahora.getFullYear()}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            // Descargar PDF
+            doc.save(`Reporte_Asistencias_${ahora.getMonth() + 1}_${ahora.getFullYear()}.pdf`);
 
-            Swal.fire("Exportación Exitosa", "El respaldo del mes ha sido descargado en formato CSV compatible con Excel.", "success");
+            Swal.fire("Exportación Exitosa", "El reporte consolidado del mes ha sido descargado en formato PDF.", "success");
         } catch (err) {
             console.error(err);
-            Swal.fire("Error", "No se pudo generar el respaldo de datos.", "error");
+            Swal.fire("Error", "No se pudo generar el reporte PDF.", "error");
         } finally {
             setExportando(false);
         }
@@ -422,7 +449,7 @@ const Ajustes = () => {
                         
                         {!mostrarExplicacionRespaldo ? (
                             <div className="bg-premium-light rounded-3 p-4 text-center">
-                                <i className="bi bi-file-earmark-spreadsheet display-4 text-info mb-3"></i>
+                                <i className="bi bi-file-earmark-pdf display-4 text-info mb-3"></i>
                                 <h6>Generar Reporte Consolidado del Mes</h6>
                                 <p className="small text-muted mb-4" style={{ maxWidth: "600px", margin: "0 auto" }}>
                                     Esta herramienta genera un respaldo completo en tiempo real de todo el historial de asistencias, entradas, salidas e incidencias de todos los empleados del mes en curso, listo para auditorías o el área de contabilidad.
@@ -454,7 +481,7 @@ const Ajustes = () => {
                                                 Generando...
                                             </>
                                         ) : (
-                                            "Sí, Generar y Descargar"
+                                            "Sí, Generar y Descargar PDF"
                                         )}
                                     </Button>
                                     <Button variant="outline-secondary" onClick={() => setMostrarExplicacionRespaldo(false)}>

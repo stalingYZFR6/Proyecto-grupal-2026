@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Container, Row, Col, Card, Button, Form, Image, Spinner, Alert, Modal } from "react-bootstrap";
+import { Container, Row, Col, Card, Button, Form, Image, Spinner, Alert, Modal, Badge } from "react-bootstrap";
 import { supabase } from "../database/supabaseconfig";
 import Swal from "sweetalert2";
 
